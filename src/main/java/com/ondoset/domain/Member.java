@@ -29,8 +29,10 @@ public class Member extends BaseEntity {
 	@Column(name = "image_url")
 	private String profileImage;
 
-	// 온보딩 여부
-	private Boolean isFirst;
+	// 온보딩 여부 (null이면 하지 않음)
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "on_boarding_id")
+	private OnBoarding onBoarding;
 
 	// 정지 기간
 	private Integer banPeriod;

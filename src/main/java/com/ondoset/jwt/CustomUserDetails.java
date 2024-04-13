@@ -28,7 +28,7 @@ public class CustomUserDetails implements UserDetails {
 	}
 
 	public Boolean getIsFirst() {
-		return  member.getIsFirst();
+		return  member.getOnBoarding()==null;
 	}
 
 	@Override

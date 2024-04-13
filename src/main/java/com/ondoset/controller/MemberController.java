@@ -2,6 +2,7 @@ package com.ondoset.controller;
 
 import com.ondoset.controller.Advice.ResponseCode;
 import com.ondoset.controller.Advice.ResponseMessage;
+import com.ondoset.dto.Member.OnBoardingDTO;
 import com.ondoset.dto.Member.RegisterDTO;
 import com.ondoset.dto.Member.UsableIdDTO;
 import com.ondoset.dto.Member.UsableNicknameDTO;
@@ -46,6 +47,14 @@ public class MemberController {
 	public ResponseEntity<ResponseMessage<String>> postRegister(@RequestBody RegisterDTO req) {
 
 		String res = memberService.postRegister(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@PostMapping("/on-boarding")
+	public ResponseEntity<ResponseMessage<String>> postOnBoarding(@RequestBody OnBoardingDTO req) {
+
+		String res = memberService.postOnBoarding(req);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}

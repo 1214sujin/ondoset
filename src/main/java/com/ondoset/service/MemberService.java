@@ -1,15 +1,16 @@
 package com.ondoset.service;
 
+import com.ondoset.controller.Advice.CustomException;
+import com.ondoset.controller.Advice.ResponseCode;
 import com.ondoset.domain.Member;
+import com.ondoset.domain.OnBoarding;
 import com.ondoset.dto.Member.*;
-import com.ondoset.jwt.JWTUtil;
 import com.ondoset.repository.MemberRepository;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import com.ondoset.repository.OnBoardingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ public class MemberService {
 
 	private final MemberRepository memberRepository;
 	private final BCryptPasswordEncoder passwordEncoder;
-	private final JWTUtil jwtUtil;
+	private final OnBoardingRepository onBoardingRepository;
 
 	public UsableIdDTO.res getUsableId(UsableIdDTO.req req) {
 
@@ -81,6 +82,41 @@ public class MemberService {
 
 		memberRepository.save(data);
 
+		log.info("new member is registered. member id: {}", name);
+
 		return "회원가입 성공";
+	}
+
+	public String postOnBoarding(OnBoardingDTO req) {
+
+		String memberId = SecurityContextHolder.getContext().getAuthentication().getName();
+		Member member = memberRepository.findByName(memberId);
+		OnBoarding data = new OnBoarding();
+		data.setMember(member);
+
+		Integer[] answer = req.getAnswer();
+		data.setAge(answer[0]);
+		data.setSex(answer[1]);
+		data.setHeight(answer[2]);
+		data.setWeight(answer[3]);
+		data.setActivation(answer[4]);
+		data.setExposure(answer[5]);
+
+		try {
+
+			onBoardingRepository.save(data);
+		}
+		catch (DataIntegrityViolationException e) {
+
+			throw new CustomException(ResponseCode.DB5000, "허용되지 않는 범위의 답변이 포함되어 있습니다.");
+		}
+		finally {
+
+			member.setOnBoarding(data);
+			memberRepository.save(member);
+			log.info("onBoarding data saved. member id: {}", memberId);
+		}
+
+		return "저장 성공";
 	}
 }

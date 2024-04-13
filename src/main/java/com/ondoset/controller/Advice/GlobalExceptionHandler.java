@@ -20,9 +20,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler
 	public ResponseEntity<ResponseMessage<String>> HandelCustomException(CustomException e) {
 
-		log.error(e.getMessage());
 		ResponseCode responseCode = e.getResponseCode();
-		return handleExceptionInternal(responseCode);
+
+		if (e.getMessage().equals("")) {
+
+			log.error(responseCode.getMessage());
+			return handleExceptionInternal(responseCode);
+		}
+		else {
+
+			log.error(responseCode.getMessage() + e.getMessage());
+			return handleExceptionInternal(responseCode, e.getMessage());
+		}
 	}
 
 	@ExceptionHandler
@@ -36,11 +45,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<ResponseMessage<String>> HandleDataIntegrityViolationException(DataIntegrityViolationException e) {
 
 		log.error(e.getMessage());
-		return handleExceptionInternal(ResponseCode.COM4090);
+		return handleExceptionInternal(ResponseCode.DB5000);
 	}
 
 	private ResponseEntity<ResponseMessage<String>> handleExceptionInternal (ResponseCode responseCode) {
 		return ResponseEntity.status(responseCode.getStatus()).body(new ResponseMessage<>(responseCode, ""));
+	}
+
+	private ResponseEntity<ResponseMessage<String>> handleExceptionInternal (ResponseCode responseCode, String message) {
+		return ResponseEntity.status(responseCode.getStatus()).body(new ResponseMessage<>(responseCode, responseCode.getMessage()+message, ""));
 	}
 
 	@Override
