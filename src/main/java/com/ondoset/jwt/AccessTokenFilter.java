@@ -55,7 +55,6 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 		// 토큰 만료 여부 검증
 		try {
 			jwtUtil.validateJwt(token);
-			filterChain.doFilter(request, response);
 		}
 		catch (TokenException e) {
 			log.warn("token expired");
