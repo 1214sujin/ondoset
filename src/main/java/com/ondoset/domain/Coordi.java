@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,11 +30,11 @@ public class Coordi extends BaseEntity {
 
     // 나간 시간
     @Column(columnDefinition = "bigint")
-    private Instant departTime;
+    private Long departTime;
 
     // 들어온 시간
     @Column(columnDefinition = "bigint")
-    private Instant arrivalTime;
+    private Long arrivalTime;
 
 	// 날씨
     @Enumerated(EnumType.STRING)

@@ -7,6 +7,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@Table(name="`like`")
 public class Like extends BaseEntity{
 
 	@Id

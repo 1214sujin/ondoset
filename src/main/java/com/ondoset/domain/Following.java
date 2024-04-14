@@ -7,6 +7,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@Table(name="`following`")
 public class Following extends BaseEntity{
 
 	@Id

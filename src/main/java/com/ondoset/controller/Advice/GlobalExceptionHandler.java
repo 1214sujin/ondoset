@@ -1,6 +1,5 @@
 package com.ondoset.controller.Advice;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +20,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<ResponseMessage<String>> HandelCustomException(CustomException e) {
 
 		ResponseCode responseCode = e.getResponseCode();
+		log.info(e.getMessage());
 
 		if (e.getMessage().equals("")) {
 
@@ -58,6 +58,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@Override
 	public ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request){
+		log.error(ex.getMessage());
 		return ResponseEntity.status(500).body(new ResponseMessage<>(ResponseCode.COM5000, ""));
 	}
 }
