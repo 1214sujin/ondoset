@@ -5,19 +5,15 @@ import com.google.gson.GsonBuilder;
 import com.ondoset.controller.Advice.ResponseCode;
 import com.ondoset.controller.Advice.ResponseMessage;
 import com.ondoset.dto.Member.JwtDTO;
-import com.ondoset.dto.Member.LoginDTO;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Map;
 
 @Log4j2
 public class RefreshTokenFilter extends OncePerRequestFilter {
@@ -49,20 +45,17 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
 
 		// Access 토큰 검증 (expired인 경우를 제외)
 		try {
-			jwtUtil.validateJwt(accessToken);
+			jwtUtil.validateBodyJwt(accessToken);
 		} catch (TokenException e) {
 			if (e.getTokenErrorCode() != ResponseCode.AUTH4000) {
 				e.sendResponseError(response);
 				return;
 			}
-		} catch (Exception e) {
-			new TokenException(ResponseCode.AUTH4001).sendResponseError(response);
-			return;
 		}
 
 		// refresh 토큰 검증
 		try {
-			jwtUtil.validateJwt(refreshToken);
+			jwtUtil.validateBodyJwt(refreshToken);
 		} catch (TokenException e) {
 			log.error("Refresh Token 검증 오류: ", e);
 			e.sendResponseError(response);

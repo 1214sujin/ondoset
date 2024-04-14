@@ -5,10 +5,11 @@ import com.ondoset.controller.Advice.ResponseCode;
 import com.ondoset.controller.Advice.ResponseMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
-import org.springframework.web.bind.annotation.GetMapping;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 
+@Log4j2
 @Getter
 public class TokenException extends RuntimeException {
 
@@ -20,6 +21,8 @@ public class TokenException extends RuntimeException {
 	}
 
 	public void sendResponseError(HttpServletResponse response) throws IOException {
+
+		log.error(tokenErrorCode.getMessage());
 
 		response.setStatus(tokenErrorCode.getStatus());
 

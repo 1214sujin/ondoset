@@ -44,19 +44,41 @@ public class JWTUtil {
 				.compact();
 	}
 
-	public Boolean validateJwt(String token) throws TokenException {
+	public String validateHeaderJwt(String authorization) throws TokenException {
+
+		// Authorization 헤더 유효성 검증
+		if (authorization == null || !authorization.startsWith("Bearer ")) {
+
+			throw new TokenException(ResponseCode.COM4010);
+		}
+
+		String token = authorization.split(" ")[1];
 
 		try {
-			return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration().before(new Date());
+			Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+			return token;
 		}
 		catch (ExpiredJwtException e) {
 
-			log.warn(e);
 			throw new TokenException(ResponseCode.AUTH4000);
 		}
 		catch (MalformedJwtException | SignatureException e) {
 
-			log.warn(e);
+			throw new TokenException(ResponseCode.AUTH4001);
+		}
+	}
+
+	public void validateBodyJwt(String token) throws TokenException {
+
+		try {
+			Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+		}
+		catch (ExpiredJwtException e) {
+
+			throw new TokenException(ResponseCode.AUTH4000);
+		}
+		catch (MalformedJwtException | SignatureException e) {
+
 			throw new TokenException(ResponseCode.AUTH4001);
 		}
 	}

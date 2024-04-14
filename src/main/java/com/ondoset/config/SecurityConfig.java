@@ -5,9 +5,9 @@ import com.ondoset.jwt.JWTUtil;
 import com.ondoset.jwt.LoginFilter;
 import com.ondoset.jwt.RefreshTokenFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -39,12 +39,26 @@ public class SecurityConfig {
 	}
 
 	@Bean
+	@Order(0)
+	public SecurityFilterChain nonSecureFilterChain(HttpSecurity http) throws Exception {
+
+		// jwt 없이 접근 가능한 url 및 정적 자원
+		http
+				.securityMatcher("/member/usable-id", "/member/usable-nickname", "/member/register",
+						"/admin/**", "/error", "/images/**")
+				.authorizeHttpRequests((auth) -> auth
+						.anyRequest().permitAll())
+				.securityContext(AbstractHttpConfigurer::disable)
+				.csrf(AbstractHttpConfigurer::disable)
+				.sessionManagement(AbstractHttpConfigurer::disable);
+
+		return http.build();
+	}
+
+	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 		http.authorizeHttpRequests((auth) -> auth
-				.requestMatchers("/member/usable-id", "/member/usable-nickname", "/member/register", "/member/login",
-								 "/admin/*", "/error").permitAll()
-				.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
 				.anyRequest().authenticated());
 
 		// jwt를 위한 필터 체인 정의 및 에러 처리

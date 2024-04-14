@@ -1,6 +1,5 @@
 package com.ondoset.jwt;
 
-import com.ondoset.controller.Advice.ResponseCode;
 import com.ondoset.domain.Member;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,8 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 @Log4j2
 @AllArgsConstructor
@@ -26,12 +23,11 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-		// jwt가 불필요한  url 처리
+		// 로그인 url 처리
 		String path = request.getRequestURI();
-		ArrayList<String> authPass = new ArrayList<>(Arrays.asList("/member/usable-id", "/member/usable-nickname",
-				"/member/register", "/member/login", "/member/jwt", "/error"));
+		log.info(path);
 
-		if (authPass.contains(path) | path.startsWith("/auth/")) {
+		if (path.equals("/member/login") | path.equals("/member/jwt")) {
 			log.info("path = {}", path);
 			filterChain.doFilter(request, response);
 			return;
@@ -39,22 +35,11 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 
 		String authorization = request.getHeader("Authorization");
 
-		// Authorization 헤더 유효성 검증
-		if (authorization == null || !authorization.startsWith("Bearer ")) {
-
-			log.warn("token is null or non-validated");
-			TokenException e = new TokenException(ResponseCode.COM4010);
-			e.sendResponseError(response);
-//			filterChain.doFilter(request, response);
-
-			return;
-		}
-
-		String token = authorization.split(" ")[1];
+		String token;
 
 		// 토큰 만료 여부 검증
 		try {
-			jwtUtil.validateJwt(token);
+			token = jwtUtil.validateHeaderJwt(authorization);
 		}
 		catch (TokenException e) {
 			log.warn("token expired");
