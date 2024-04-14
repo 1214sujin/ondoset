@@ -9,11 +9,16 @@ import com.ondoset.repository.MemberRepository;
 import com.ondoset.repository.OnBoardingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -24,6 +29,8 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final BCryptPasswordEncoder passwordEncoder;
 	private final OnBoardingRepository onBoardingRepository;
+	@Value("${com.ondoset.resources.path}")
+	private String resourcesPath;
 
 	public UsableIdDTO.res getUsableId(UsableIdDTO.req req) {
 
@@ -118,5 +125,26 @@ public class MemberService {
 		}
 
 		return "저장 성공";
+	}
+
+	public void postProfilePic(ProfilePicDTO req) {
+
+		MultipartFile pic = req.getImage();
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		if (pic.isEmpty()) throw new CustomException(ResponseCode.COM4000, "파일이 비어 있습니다.");
+
+		String filename = pic.getOriginalFilename();
+		filename = "/profile/"+member.getId().toString()+"_"+filename;
+		Path savePath = Paths.get(resourcesPath+filename);
+
+		try {
+			pic.transferTo(savePath);
+			member.setProfileImage(filename);
+			memberRepository.save(member);
+		}
+		catch (Exception e) {
+			throw new CustomException(ResponseCode.COM4150);
+		}
 	}
 }

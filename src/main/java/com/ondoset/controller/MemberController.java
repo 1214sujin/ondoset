@@ -2,10 +2,7 @@ package com.ondoset.controller;
 
 import com.ondoset.controller.Advice.ResponseCode;
 import com.ondoset.controller.Advice.ResponseMessage;
-import com.ondoset.dto.Member.OnBoardingDTO;
-import com.ondoset.dto.Member.RegisterDTO;
-import com.ondoset.dto.Member.UsableIdDTO;
-import com.ondoset.dto.Member.UsableNicknameDTO;
+import com.ondoset.dto.Member.*;
 import com.ondoset.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -57,5 +54,13 @@ public class MemberController {
 		String res = memberService.postOnBoarding(req);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@PostMapping("/profile-pic")
+	public ResponseEntity<ResponseMessage<String>> postProfilePic(ProfilePicDTO req) {
+
+		memberService.postProfilePic(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "저장 성공"));
 	}
 }
