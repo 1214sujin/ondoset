@@ -2,6 +2,7 @@ package com.ondoset.service;
 
 import com.ondoset.domain.Member;
 import com.ondoset.dto.OOTD.MyProfileDTO;
+import com.ondoset.dto.OOTD.MyProfilePageDTO;
 import com.ondoset.dto.OOTD.OotdDTO;
 import com.ondoset.repository.FollowingRepository;
 import com.ondoset.repository.LikeRepository;
@@ -33,7 +34,7 @@ public class OOTDService {
 		String name = SecurityContextHolder.getContext().getAuthentication().getName();
 		Member member = memberRepository.findByName(name);
 
-		// 사용자의 ootd 10개 조회 / 총계
+		// 사용자의 ootd 10개 조회
 		List<OotdDTO> ootdList = ootdRepository.pageMyProfile(TimeZone.getDefault().getRawOffset(), member);
 		Long lastPage;
 		if (ootdList.size() < 10) {
@@ -53,6 +54,29 @@ public class OOTDService {
 		res.setOotdCount(ootdCount);
 		res.setLikeCount(likeCount);
 		res.setFollowingCount(followingCount);
+		res.setLastPage(lastPage);
+		res.setOotdList(ootdList);
+
+		return res;
+	}
+
+	public MyProfilePageDTO.res getMyProfilePage(MyProfilePageDTO.req req) {
+
+		// 현재 사용자 조회
+		String name = SecurityContextHolder.getContext().getAuthentication().getName();
+		Member member = memberRepository.findByName(name);
+
+		// 사용자의 ootd 10개 조회
+		List<OotdDTO> ootdList = ootdRepository.pageMyProfile(TimeZone.getDefault().getRawOffset(), member, req.getLastPage());
+		Long lastPage;
+		if (ootdList.size() < 10) {
+			lastPage = -2L;
+		} else {
+			lastPage = ootdList.get(9).getOotdId();
+		}
+
+		// 응답 정의
+		MyProfilePageDTO.res res = new MyProfilePageDTO.res();
 		res.setLastPage(lastPage);
 		res.setOotdList(ootdList);
 

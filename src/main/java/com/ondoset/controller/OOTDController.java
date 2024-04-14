@@ -3,6 +3,7 @@ package com.ondoset.controller;
 import com.ondoset.controller.Advice.ResponseCode;
 import com.ondoset.controller.Advice.ResponseMessage;
 import com.ondoset.dto.OOTD.MyProfileDTO;
+import com.ondoset.dto.OOTD.MyProfilePageDTO;
 import com.ondoset.service.OOTDService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -23,6 +24,14 @@ public class OOTDController {
 	public ResponseEntity<ResponseMessage<MyProfileDTO>> getMyProfile() {
 
 		MyProfileDTO res = ootdService.getMyProfile();
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping("/my-profile/page")
+	public ResponseEntity<ResponseMessage<MyProfilePageDTO.res>> getMyProfilePage(MyProfilePageDTO.req req) {
+
+		MyProfilePageDTO.res res = ootdService.getMyProfilePage(req);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
