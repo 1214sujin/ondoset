@@ -166,4 +166,15 @@ public class MemberService {
 			throw new CustomException(ResponseCode.COM4090);
 		}
 	}
+
+	public void getDelete() {
+
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		try {
+			memberRepository.delete(member);
+		} catch (DataIntegrityViolationException e) {
+			throw new CustomException(ResponseCode.COM4091);
+		}
+	}
 }

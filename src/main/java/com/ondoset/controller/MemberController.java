@@ -71,4 +71,12 @@ public class MemberController {
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "변경 성공"));
 	}
+
+	@GetMapping("/delete")
+	public ResponseEntity<ResponseMessage<String>> getDelete() {
+
+		memberService.getDelete();
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "회원탈퇴 성공"));
+	}
 }
