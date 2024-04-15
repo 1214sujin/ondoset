@@ -1,4 +1,4 @@
-package com.ondoset.controller.Advice;
+package com.ondoset.controller.advice;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.DataIntegrityViolationException;

@@ -1,8 +1,8 @@
 package com.ondoset.controller;
 
-import com.ondoset.controller.Advice.ResponseCode;
-import com.ondoset.controller.Advice.ResponseMessage;
-import com.ondoset.dto.Member.*;
+import com.ondoset.controller.advice.ResponseCode;
+import com.ondoset.controller.advice.ResponseMessage;
+import com.ondoset.dto.member.*;
 import com.ondoset.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

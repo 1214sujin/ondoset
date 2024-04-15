@@ -1,6 +1,6 @@
 package com.ondoset.jwt;
 
-import com.ondoset.controller.Advice.ResponseCode;
+import com.ondoset.controller.advice.ResponseCode;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

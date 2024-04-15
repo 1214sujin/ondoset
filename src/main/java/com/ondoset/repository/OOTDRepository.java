@@ -2,7 +2,7 @@ package com.ondoset.repository;
 
 import com.ondoset.domain.Member;
 import com.ondoset.domain.OOTD;
-import com.ondoset.dto.OOTD.OotdDTO;
+import com.ondoset.dto.ootd.OotdDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

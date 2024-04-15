@@ -1,16 +1,17 @@
 package com.ondoset.service;
 
-import com.ondoset.controller.Advice.CustomException;
-import com.ondoset.controller.Advice.ResponseCode;
+import com.ondoset.controller.advice.CustomException;
+import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.domain.Member;
 import com.ondoset.domain.OnBoarding;
-import com.ondoset.dto.Member.*;
+import com.ondoset.dto.member.*;
 import com.ondoset.repository.MemberRepository;
 import com.ondoset.repository.OnBoardingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -173,7 +174,7 @@ public class MemberService {
 
 		try {
 			memberRepository.delete(member);
-		} catch (DataIntegrityViolationException e) {
+		} catch (InvalidDataAccessApiUsageException e) {
 			throw new CustomException(ResponseCode.COM4091);
 		}
 	}

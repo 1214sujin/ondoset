@@ -1,4 +1,4 @@
-package com.ondoset.dto.OOTD;
+package com.ondoset.dto.ootd;
 
 import lombok.Getter;
 import lombok.Setter;

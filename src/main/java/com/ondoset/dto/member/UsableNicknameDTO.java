@@ -1,15 +1,15 @@
-package com.ondoset.dto.Member;
+package com.ondoset.dto.member;
 
 import lombok.Getter;
 import lombok.Setter;
 
-public class UsableIdDTO {
+public class UsableNicknameDTO {
 
 	@Getter
 	@Setter
 	public static class req {
 
-		private String memberId;
+		private String nickname;
 	}
 
 	@Getter

@@ -1,9 +1,9 @@
 package com.ondoset.controller;
 
-import com.ondoset.controller.Advice.ResponseCode;
-import com.ondoset.controller.Advice.ResponseMessage;
-import com.ondoset.dto.OOTD.MyProfileDTO;
-import com.ondoset.dto.OOTD.MyProfilePageDTO;
+import com.ondoset.controller.advice.ResponseCode;
+import com.ondoset.controller.advice.ResponseMessage;
+import com.ondoset.dto.ootd.MyProfileDTO;
+import com.ondoset.dto.ootd.MyProfilePageDTO;
 import com.ondoset.service.OOTDService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

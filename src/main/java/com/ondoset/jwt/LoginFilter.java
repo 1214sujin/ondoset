@@ -2,9 +2,9 @@ package com.ondoset.jwt;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.ondoset.controller.Advice.ResponseCode;
-import com.ondoset.controller.Advice.ResponseMessage;
-import com.ondoset.dto.Member.LoginDTO;
+import com.ondoset.controller.advice.ResponseCode;
+import com.ondoset.controller.advice.ResponseMessage;
+import com.ondoset.dto.member.LoginDTO;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,9 +1,9 @@
 package com.ondoset.service;
 
 import com.ondoset.domain.Member;
-import com.ondoset.dto.OOTD.MyProfileDTO;
-import com.ondoset.dto.OOTD.MyProfilePageDTO;
-import com.ondoset.dto.OOTD.OotdDTO;
+import com.ondoset.dto.ootd.MyProfileDTO;
+import com.ondoset.dto.ootd.MyProfilePageDTO;
+import com.ondoset.dto.ootd.OotdDTO;
 import com.ondoset.repository.FollowingRepository;
 import com.ondoset.repository.LikeRepository;
 import com.ondoset.repository.MemberRepository;

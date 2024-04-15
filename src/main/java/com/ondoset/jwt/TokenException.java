@@ -1,8 +1,8 @@
 package com.ondoset.jwt;
 
 import com.google.gson.Gson;
-import com.ondoset.controller.Advice.ResponseCode;
-import com.ondoset.controller.Advice.ResponseMessage;
+import com.ondoset.controller.advice.ResponseCode;
+import com.ondoset.controller.advice.ResponseMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;

@@ -1,4 +1,4 @@
-package com.ondoset.dto.Member;
+package com.ondoset.dto.member;
 
 import lombok.Getter;
 import lombok.Setter;
