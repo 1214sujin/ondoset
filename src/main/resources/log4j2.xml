@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+
+    <!-- Appender, Layout 설정 -->
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %5p %l - %m%n"/>
+        </Console>
+        <JPA name="db" persistenceUnitName="loggingPersistenceUnit"
+             entityClassName="com.ondoset.jwt.JpaLogEntity" />
+    </Appenders>
+
+    <!-- Logger 설정 -->
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="console"/>
+        </Root>
+    </Loggers>
+
+</Configuration>
