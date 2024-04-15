@@ -20,39 +20,32 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<ResponseMessage<String>> HandelCustomException(CustomException e) {
 
 		ResponseCode responseCode = e.getResponseCode();
-		log.info(e.getMessage());
 
 		if (e.getMessage().equals("")) {
-
-			log.error(responseCode.getMessage());
 			return handleExceptionInternal(responseCode);
 		}
 		else {
-
-			log.error(responseCode.getMessage() + e.getMessage());
 			return handleExceptionInternal(responseCode, e.getMessage());
 		}
 	}
 
 	@ExceptionHandler
 	public ResponseEntity<ResponseMessage<String>> HandleAccessDeniedException(AccessDeniedException e) {
-
-		log.error(e.getMessage());
 		return handleExceptionInternal(ResponseCode.COM4030);
 	}
 
 	@ExceptionHandler
 	public ResponseEntity<ResponseMessage<String>> HandleDataIntegrityViolationException(DataIntegrityViolationException e) {
-
-		log.error(e.getMessage());
 		return handleExceptionInternal(ResponseCode.DB5000);
 	}
 
 	private ResponseEntity<ResponseMessage<String>> handleExceptionInternal (ResponseCode responseCode) {
+		log.error(responseCode.getMessage());
 		return ResponseEntity.status(responseCode.getStatus()).body(new ResponseMessage<>(responseCode, ""));
 	}
 
 	private ResponseEntity<ResponseMessage<String>> handleExceptionInternal (ResponseCode responseCode, String message) {
+		log.error(responseCode.getMessage() + message);
 		return ResponseEntity.status(responseCode.getStatus()).body(new ResponseMessage<>(responseCode, responseCode.getMessage()+message, ""));
 	}
 

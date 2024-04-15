@@ -40,20 +40,20 @@ public class MemberController {
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
 
-	@PostMapping("/register")        // String nickname, String memberId, String password
+	@PostMapping("/register")
 	public ResponseEntity<ResponseMessage<String>> postRegister(@RequestBody RegisterDTO req) {
 
-		String res = memberService.postRegister(req);
+		memberService.postRegister(req);
 
-		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "회원가입 성공"));
 	}
 
 	@PostMapping("/on-boarding")
 	public ResponseEntity<ResponseMessage<String>> postOnBoarding(@RequestBody OnBoardingDTO req) {
 
-		String res = memberService.postOnBoarding(req);
+		memberService.postOnBoarding(req);
 
-		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "저장 성공"));
 	}
 
 	@PostMapping("/profile-pic")
@@ -61,6 +61,14 @@ public class MemberController {
 
 		memberService.postProfilePic(req);
 
-		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "저장 성공"));
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "변경 성공"));
+	}
+
+	@PostMapping("/nickname")
+	public ResponseEntity<ResponseMessage<String>> postNickname(@RequestBody NicknameDTO req) {
+
+		memberService.postNickname(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "변경 성공"));
 	}
 }

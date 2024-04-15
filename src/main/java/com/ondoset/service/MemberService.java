@@ -75,29 +75,36 @@ public class MemberService {
 		return res;
 	}
 
-	public String postRegister(RegisterDTO req) {
+	public void postRegister(RegisterDTO req) {
 
 		String name = req.getMemberId();
 		String password = req.getPassword();
 		String nickname = req.getNickname();
 
 		Member data = new Member();
-
-		data.setName(name);
-		data.setPassword(passwordEncoder.encode(password));
-		data.setNickname(nickname);
+		try {
+			data.setName(name);
+			data.setPassword(passwordEncoder.encode(password));
+			data.setNickname(nickname);
+		}
+		catch (DataIntegrityViolationException e) {
+			throw new CustomException(ResponseCode.COM4090);
+		}
 
 		memberRepository.save(data);
 
 		log.info("new member is registered. member id: {}", name);
-
-		return "회원가입 성공";
 	}
 
-	public String postOnBoarding(OnBoardingDTO req) {
+	public void postOnBoarding(OnBoardingDTO req) {
 
 		String memberId = SecurityContextHolder.getContext().getAuthentication().getName();
 		Member member = memberRepository.findByName(memberId);
+
+		if (member.getOnBoarding() != null) {
+			throw new CustomException(ResponseCode.COM4090);
+		}
+
 		OnBoarding data = new OnBoarding();
 		data.setMember(member);
 
@@ -123,8 +130,6 @@ public class MemberService {
 			memberRepository.save(member);
 			log.info("onBoarding data saved. member id: {}", memberId);
 		}
-
-		return "저장 성공";
 	}
 
 	public void postProfilePic(ProfilePicDTO req) {
@@ -145,6 +150,20 @@ public class MemberService {
 		}
 		catch (Exception e) {
 			throw new CustomException(ResponseCode.COM4150);
+		}
+	}
+
+	public void postNickname(NicknameDTO req) {
+
+		String newNickname = req.getNickname();
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		try {
+			member.setNickname(newNickname);
+			memberRepository.save(member);
+		}
+		catch (DataIntegrityViolationException e) {
+			throw new CustomException(ResponseCode.COM4090);
 		}
 	}
 }
