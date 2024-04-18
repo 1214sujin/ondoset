@@ -40,13 +40,20 @@ public class Kma {
 
 		try {
 			URL url = new URL(reqUrl);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
-			con.setRequestMethod("GET");
-			con.setRequestProperty("Content-Type", "application/json");
+			HttpURLConnection con;
+			BufferedReader in;
+			String response;
+			do {
+				con = (HttpURLConnection) url.openConnection();
+				con.setRequestMethod("GET");
+				con.setRequestProperty("Content-Type", "application/json");
 
-			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			String response = in.readLine();
+				in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+				in.mark(50000);
+				response = in.readLine();
 
+				in.reset();
+			} while (response.charAt(0) == '<');	// 기상청 API 서버 내부 에러가 발생하는 경우 재요청: <OpenAPI_ServiceResponse> ...
 			in.close();
 			con.disconnect();
 
@@ -141,6 +148,8 @@ public class Kma {
 
 		int lowestTemp = 99;
 		int highestTemp= -99;
+		// 순서대로 RAINNY, SNOWY, PARTLY_CLOUDY, CLOUDY, SUNNY (우선순위순)
+		int[] weatherCount = {0, 0, 0, 0, 0};
 
 		for (JsonElement e : items.getAsJsonArray()) {
 			String ta = e.getAsJsonObject().get("ta").toString().replace("\"", "");
@@ -152,39 +161,37 @@ public class Kma {
 			if (tempAvg > highestTemp) {
 				highestTemp = tempAvg;
 			}
-		}
 
-		// 지상 관측 일자료 API 요청
-		response = getAPIRes(String.format("http://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList" +
-				"?numOfRows=1&pageNo=1&dataType=JSON&dataCd=ASOS&dateCd=DAY&startDt=%s&endDt=%s&stnIds=%s" +
-				"&serviceKey=%s", departReqTime.substring(0, 8), departReqTime.substring(0, 8), stn, serviceKey));
-
-		items = response.getAsJsonObject("response").getAsJsonObject("body").getAsJsonObject("items").getAsJsonArray("item");
-
-		Weather weather = null;
-
-		for (JsonElement e : items.getAsJsonArray()) {
-			String rain = e.getAsJsonObject().get("n99Rn").toString().replace("\"", "");
-			String snow = e.getAsJsonObject().get("ddMefs").toString().replace("\"", "");
+			String rain = e.getAsJsonObject().get("rn").toString().replace("\"", "");
+			String snow = e.getAsJsonObject().get("hr3Fhsc").toString().replace("\"", "");
 
 			if (snow.equals("")) {
-
 				if (rain.equals("")) {
+					double cloud = Double.parseDouble(e.getAsJsonObject().get("dc10Tca").toString().replace("\"", ""));
 
-					double cloud = Double.parseDouble(e.getAsJsonObject().get("avgTca").toString().replace("\"", ""));
-					if (cloud <= 5) {
-						weather = Weather.SUNNY;
-					} else if (cloud <= 8) {
-						weather = Weather.PARTLY_CLOUDY;
-					} else {
-						weather = Weather.CLOUDY;
-					}
-				} else {
-					weather = Weather.RAINY;
-				}
-			} else {
-				weather = Weather.SNOWY;
+					if (cloud <= 5)		weatherCount[4] += 1;
+					else if(cloud <= 8)	weatherCount[2] += 1;
+					else /* 흐림 */		weatherCount[3] += 1;
+				} else /* 비 */		weatherCount[0] += 1;
+			} else /* 눈 */		weatherCount[1] += 1;
+		}
+
+		// 날씨 구하기
+		Weather weather = null;
+		int max = -1;
+		int maxIdx = -1;
+		for (int i = 0; i < 5; i++) {
+			if (weatherCount[i] > max) {
+				max = weatherCount[i];
+				maxIdx = i;
 			}
+		}
+		switch (maxIdx) {
+			case 0: if (weatherCount[0] == weatherCount[1]) weather = Weather.SLEET; else weather = Weather.RAINY; break;
+			case 1: weather = Weather.SNOWY; break;
+			case 2: weather = Weather.PARTLY_CLOUDY; break;
+			case 3: if (weatherCount[3] == weatherCount[4]) weather = Weather.PARTLY_CLOUDY; else weather = Weather.CLOUDY; break;
+			case 4: weather = Weather.SUNNY; break;
 		}
 
 		PastWDTO result = new PastWDTO();

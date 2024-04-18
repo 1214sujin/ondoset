@@ -22,11 +22,12 @@ public class Consisting extends BaseEntity{
     @JoinColumn(name = "coordi_id")
     private Coordi coordi;
 
-    public void setCoordi(Coordi coordi) {
-//        if (this.coordi != null) {
-//            this.coordi.getConsistings().remove(this);
-//        }
+    public void setConsistings(Coordi coordi, Clothes clothes) {
+
         this.coordi = coordi;
         coordi.getConsistings().add(this);
+
+        this.clothes = clothes;
+        // clothes에서 consisting을 찾을 일이 없기 때문에 설정하지 않음
     }
 }
