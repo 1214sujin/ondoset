@@ -40,7 +40,7 @@ public class CoordiService {
 		RootDTO.res res = new RootDTO.res();
 
 		Long departTime = req.getDepartTime();
-		long date = (departTime / 86400 + 1) * 86400 - 32400 / 1000;
+		long date = ((departTime+32400)/86400)*86400-32400;
 
 		// 이미 사용자가 해당 날짜에 코디 데이터를 가지고 있다면 오류 반환
 		String name = SecurityContextHolder.getContext().getAuthentication().getName();

@@ -7,6 +7,9 @@ import com.google.gson.JsonParser;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.domain.Enum.Weather;
+import com.ondoset.dto.clothes.FcstDTO;
+import com.ondoset.dto.kma.DayWDTO;
+import com.ondoset.dto.kma.ForecastDTO;
 import com.ondoset.dto.kma.PastWDTO;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -22,7 +25,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.TimeZone;
+import java.util.*;
 
 @Log4j2
 @Component
@@ -36,8 +39,9 @@ public class Kma {
 	private String serviceKey;
 
 	// JSON으로 반환되는 API 요청
-	private JsonObject getAPIRes(String reqUrl) {
+	private JsonArray getAPIRes(String reqUrl) {
 
+		JsonObject result;
 		try {
 			URL url = new URL(reqUrl);
 			HttpURLConnection con;
@@ -49,7 +53,7 @@ public class Kma {
 				con.setRequestProperty("Content-Type", "application/json");
 
 				in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-				in.mark(50000);
+				in.mark(500000);
 				response = in.readLine();
 
 				in.reset();
@@ -57,20 +61,22 @@ public class Kma {
 			in.close();
 			con.disconnect();
 
-			return JsonParser.parseString(response).getAsJsonObject();
+			result = JsonParser.parseString(response).getAsJsonObject();
 		}
 		catch (IOException e) {
 			throw new CustomException(ResponseCode.COM4000, "오류가 발생한 요청 API: "+reqUrl);
 		}
+
+		String kmaErrorCode = result.getAsJsonObject("response").getAsJsonObject("header").get("resultCode").toString().replace("\"", "");
+		if (!kmaErrorCode.equals("00")) {
+			throw new CustomException(ResponseCode.COM5000, "기상청 API 응답에 오류가 있습니다: " + kmaErrorCode + ", " + reqUrl);
+		} else {
+			return result.getAsJsonObject("response").getAsJsonObject("body").getAsJsonObject("items").getAsJsonArray("item");
+		}
 	}
 
 	// 위도/경도를 관측 지점 정보로 변환
-	private String getStn(Double lat, Double lon, Long epochTime) {
-
-		// 날짜를 API 요청 형식으로 변환
-		Instant instant = Instant.ofEpochSecond(epochTime);
-		LocalDateTime datetime = LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Seoul"));
-		String time = datetime.format(kmaFormatter);
+	private String getStn(Double lat, Double lon, String time) {
 
 		String reqUrl = String.format("https://apihub.kma.go.kr/api/typ01/url/stn_inf.php?inf=SFC&tm=%s&authKey=%s", time, authKey);
 
@@ -118,33 +124,20 @@ public class Kma {
 		}
 	}
 
-	// 시간과 함께 요청하지 않으면 현재 시간을 가지고 관측 지점 조회
-	private String getStn(Double lat, Double lon) {
-
-		return getStn(lat, lon, Instant.now().getEpochSecond());
-	}
-
 	/** 과거 날씨 조회 */
 	public PastWDTO getPastW(Double lat, Double lon, Long departTime, Long arrivalTime) {
 
 		// 날짜를 API 요청 형식으로 변환
-		Instant departInstant = Instant.ofEpochSecond(departTime);
-		LocalDateTime departDatetime = LocalDateTime.ofInstant(departInstant, ZoneId.of("Asia/Seoul"));
-		String departReqTime = departDatetime.format(kmaFormatter);
-
-		Instant arrivalInstant = Instant.ofEpochSecond(arrivalTime);
-		LocalDateTime arrivalDatetime = LocalDateTime.ofInstant(arrivalInstant, ZoneId.of("Asia/Seoul"));
-		String arrivalReqTime = arrivalDatetime.format(kmaFormatter);
+		String departReqTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(departTime), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
+		String arrivalReqTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(arrivalTime), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
 
 		// 사용자 위치에 대한 stn 값 획득
-		String stn = getStn(lat, lon, departTime);
+		String stn = getStn(lat, lon, departReqTime);
 
 		// 지상 관측 시간자료 API 요청
-		JsonObject response = getAPIRes(String.format("https://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList" +
-				"?numOfRows=48&pageNo=1&dataType=JSON&dataCd=ASOS&dateCd=HR&startDt=%s&startHh=%s&endDt=%s&endHh=%s&stnIds=%s" +
-				"&serviceKey=%s", departReqTime.substring(0, 8), departReqTime.substring(8, 10), arrivalReqTime.substring(0, 8), arrivalReqTime.substring(8, 10), stn, serviceKey));
-
-		JsonArray items = response.getAsJsonObject("response").getAsJsonObject("body").getAsJsonObject("items").getAsJsonArray("item");
+		JsonArray items = getAPIRes(String.format("https://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList" +
+				"?numOfRows=48&pageNo=1&dataType=JSON&dataCd=ASOS&dateCd=HR&startDt=%s&startHh=%s&endDt=%s&endHh=%s&stnIds=%s&serviceKey=%s",
+				departReqTime.substring(0, 8), departReqTime.substring(8, 10), arrivalReqTime.substring(0, 8), arrivalReqTime.substring(8, 10), stn, serviceKey));
 
 		int lowestTemp = 99;
 		int highestTemp= -99;
@@ -200,5 +193,209 @@ public class Kma {
 		result.setWeather(weather);
 
 		return result;
+	}
+
+	// 위도/경도를 X/Y 격자로 변환
+	private Map<String, String> getXY(Double lat, Double lon) {
+
+		String reqUrl = String.format("https://apihub.kma.go.kr/api/typ01/cgi-bin/url/nph-dfs_xy_lonlat?lon=%f&lat=%f&help=0&authKey=%s", lon, lat, authKey);
+
+		try {
+			URL url = new URL(reqUrl);
+			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			con.setRequestMethod("GET");
+			con.setRequestProperty("Content-Type", "application/json");
+
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+			// 설명 라인 버리기
+			in.readLine();
+			in.readLine();
+
+			// 라인 파싱
+			String inputLine = in.readLine();
+			String[] tuple = inputLine.replaceAll(" +", "").split(",");
+
+			String x = tuple[2];
+			String y = tuple[3];
+			in.close();
+			con.disconnect();
+
+			Map<String, String> result = new HashMap<>();
+			result.put("x", x);
+			result.put("y", y);
+
+			return result;
+		}
+		catch (IOException e) {
+			throw new CustomException(ResponseCode.COM4000, "오류가 발생한 요청 API: "+reqUrl);
+		}
+	}
+
+	// 어제와의 기온 비교를 위해 과거 관측 값 획득
+	private Double getLastW(Double lat, Double lon, Long date) {
+
+		// 날짜를 API 요청 형식으로 변환
+		String reqTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(date), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
+
+		// 사용자 위치에 대한 stn 값 획득
+		String stn = getStn(lat, lon, reqTime);
+
+		// 지상 관측 시간자료 API 요청
+		JsonArray items = getAPIRes(String.format("https://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList" +
+				"?numOfRows=1&pageNo=1&dataType=JSON&dataCd=ASOS&dateCd=HR&startDt=%s&startHh=%s&endDt=%1$s&endHh=%2$s&stnIds=%s" +
+				"&serviceKey=%s", reqTime.substring(0, 8), reqTime.substring(8, 10), stn, serviceKey));
+
+		Double lastTemp = null;
+		for (JsonElement e : items.getAsJsonArray()) {
+			String ta = e.getAsJsonObject().get("ta").toString().replace("\"", "");
+			lastTemp = Double.parseDouble(ta);
+		}
+		return lastTemp;
+	}
+
+	// 요청 날짜의 날씨 예보 획득
+	private DayWDTO getDayW(String x, String y, int timeFromToday, String date) {
+
+		long now = Instant.now().getEpochSecond();
+
+		// 현재 시각을 기준으로 가장 최근의 API 요청 base_time
+		Integer numOfRows = null;
+		String time = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
+		int clock = (int) (now + 35400 - ((now + 32400) / 86400) * 86400) / 10800;
+		switch (clock) {
+			case 0 -> {
+				clock = 8;
+				numOfRows = 290 + 290 * timeFromToday;
+				time = LocalDateTime.ofInstant(Instant.now().minusSeconds(86400), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
+			}
+			case 1 -> numOfRows = 254 + 290 * timeFromToday;
+			case 2 -> numOfRows = 217 + 290 * timeFromToday;
+			case 3 -> numOfRows = 181 + 290 * timeFromToday;
+			case 4 -> numOfRows = 145 + 290 * timeFromToday;
+			case 5 -> numOfRows = 108 + 290 * timeFromToday;
+			case 6 -> numOfRows = 72 + 290 * timeFromToday;
+			case 7 -> numOfRows = 36 + 290 * timeFromToday;
+		}
+
+		JsonArray items = getAPIRes(String.format("https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0/getVilageFcst" +
+				"?pageNo=1&numOfRows=%d&dataType=JSON&base_date=%s&base_time=%s&nx=%s&ny=%s" +
+				"&authKey=%s", numOfRows, time.substring(0, 8), String.format("%02d00", clock*3-1), x, y, authKey));
+
+		DayWDTO result = new DayWDTO();
+		Map<Integer, Map<String, String>> dto = new HashMap<>();
+
+		// 응답으로부터 예보 정보 획득
+		for (JsonElement e : items.getAsJsonArray()) {
+
+			String fcstDate = e.getAsJsonObject().get("fcstDate").toString().replace("\"", "");
+
+			// 요청된 날짜와 같은 날짜에 대해서만 저장
+			if (fcstDate.equals(date)) {
+
+				String category = e.getAsJsonObject().get("category").toString().replace("\"", "");
+				String fcstValue = e.getAsJsonObject().get("fcstValue").toString().replace("\"", "");
+				int fcstTime = Integer.parseInt(e.getAsJsonObject().get("fcstTime").toString().replace("\"", "").substring(0, 2));
+
+				if (!dto.containsKey(fcstTime)) {
+					dto.put(fcstTime, new HashMap<>());
+				}
+				switch (category) {
+					case "TMP" -> dto.get(fcstTime).put("tmp", fcstValue);
+					case "POP" -> dto.get(fcstTime).put("pop", fcstValue);
+					case "PTY" -> dto.get(fcstTime).put("pty", fcstValue);
+					case "SKY" -> dto.get(fcstTime).put("sky", fcstValue);
+					case "TMN" -> result.setMin(Double.valueOf(fcstValue).longValue());
+					case "TMX" -> result.setMax(Double.valueOf(fcstValue).longValue());
+				}
+			}
+		}
+
+		List<FcstDTO> fcst = new ArrayList<>();
+
+		for (Integer fcstTime : dto.keySet()) {
+
+			int pty = Integer.parseInt(dto.get(fcstTime).get("pty"));
+			Weather weather;
+
+			if (pty == 1 | pty == 4) weather = Weather.RAINY;
+			else if (pty == 2) weather = Weather.SLEET;
+			else if (pty == 3)	weather = Weather.SNOWY;
+			else {
+				int sky = Integer.parseInt(dto.get(fcstTime).get("sky"));
+				if (sky == 1)	weather = Weather.SUNNY;
+				else if (sky == 3)	weather = Weather.PARTLY_CLOUDY;
+				else if (sky == 4)	weather = Weather.CLOUDY;
+				else throw new CustomException(ResponseCode.COM5000);
+			}
+			Long tmp = Long.valueOf(dto.get(fcstTime).get("tmp"));
+			Integer pop = Integer.valueOf(dto.get(fcstTime).get("pop"));
+
+			fcst.add(new FcstDTO(fcstTime, tmp, pop, weather));
+		}
+
+		result.setFcst(fcst);
+
+		return result;
+	}
+
+	// 현재 날씨 획득
+	private List<FcstDTO> getNowW(Integer x, Integer y) {
+
+		// https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0/getVilageFcst
+		// ?pageNo=1&numOfRows=%d&dataType=JSON&base_date=%s&base_time=%s&nx=%s&ny=%s
+		// &authKey=%s
+		long now = Instant.now().getEpochSecond();
+	}
+
+	/** 요청 날짜의 날씨 및 예보 조회 */
+	public ForecastDTO getForecast(Double lat, Double lon, Long date) {
+
+		// 오늘로부터 어느 시점에 대한 요청인지 확인 (0: 오늘, 1: 내일, 2: 모레)
+		long now = Instant.now().getEpochSecond();
+		int timeFromToday = (int) ((date - now) / 86400 + 1);
+
+		// 날짜를 API 요청 형식으로 변환
+		String reqNowTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(date), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
+
+		// 위도/경도를 X/Y 격자로 변환
+		Map<String, String> xy = getXY(lat, lon);
+		String x = xy.get("x");
+		String y = xy.get("y");
+
+		ForecastDTO res = new ForecastDTO();
+
+		switch (timeFromToday) {
+			case 0 -> {
+				// 초단기예보 API 호출 및 현재 기온/강수형태/하늘상태 획득, 풍속/습도 획득하여 체감온도 계산
+
+				// 현재 날씨를 획득
+				res.setNow();
+				res.setDiff();
+				res.setFeel();
+				res.setWeather();
+			}
+			case 1, 2 -> {
+				// 최저/최고 기온 및 하루 예보 획득
+
+				res.setDiff(null);
+				res.setFeel(null);
+
+				// 단기예보 API 호출 및 내일or모레에 대한 기온/하늘상태 획득
+
+				// 요청 날짜의 9-9 평균 기온 및 평균 하늘상태를 획득
+				res.setNow();
+				res.setWeather();
+			}
+			default -> throw new CustomException(ResponseCode.COM4000);
+		}
+
+		// 최저/최고 기온 및 하루 예보 획득
+		DayWDTO fcst= getDayW(x, y, timeFromToday, reqNowTime.substring(0, 8));
+		res.setMin(fcst.getMin());
+		res.setMax(fcst.getMax());
+		res.setFcst(fcst.getFcst());
+
+		return res;
 	}
 }
