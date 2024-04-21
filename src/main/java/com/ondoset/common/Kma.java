@@ -8,9 +8,7 @@ import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.domain.Enum.Weather;
 import com.ondoset.dto.clothes.FcstDTO;
-import com.ondoset.dto.kma.DayWDTO;
-import com.ondoset.dto.kma.ForecastDTO;
-import com.ondoset.dto.kma.PastWDTO;
+import com.ondoset.dto.kma.*;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -232,11 +230,12 @@ public class Kma {
 		}
 	}
 
-	// 어제와의 기온 비교를 위해 과거 관측 값 획득
-	private Double getLastW(Double lat, Double lon, Long date) {
+	// 어제와의 기온 비교를 위해 과거 관측 값 획득 (getNowW에 포함)
+	// (오전 11시부터 가능.. **추후 확인 및 처리하기!**) >> 일단 0시 확인 불가, 4시 확인 가능
+	private Double getLastW(Double lat, Double lon, Long todayDate) {
 
 		// 날짜를 API 요청 형식으로 변환
-		String reqTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(date), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
+		String reqTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(todayDate).minusSeconds(86400), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
 
 		// 사용자 위치에 대한 stn 값 획득
 		String stn = getStn(lat, lon, reqTime);
@@ -254,12 +253,32 @@ public class Kma {
 		return lastTemp;
 	}
 
-	// 요청 날짜의 날씨 예보 획득
-	private DayWDTO getDayW(String x, String y, int timeFromToday, String date) {
+	private Double getSummerFeel(Double ta, Integer rh) {
+
+		double tw = ta * Math.atan(0.151977 * Math.pow(rh + 8.313659, 0.5)) + Math.atan(ta + rh)
+				- Math.atan(rh - 1.67633) + 0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) - 4.686035;
+
+		return Math.round((-0.2442 + 0.55399 * tw + 0.45535 * ta - 0.0022 * Math.pow(tw, 2) + 0.00278 * tw * ta + 3.0) * 10) / 10.0;
+	}
+
+	private Double getWinterFeel(Double ta, Double wsd) {
+
+		if (ta > 10 || wsd < 1.3) return ta;
+
+		double v = Math.pow(wsd * 18.0/5.0, 0.16);
+		return Math.round((13.12 + 0.6215 * ta - 11.37 * v + 0.3965 * ta * v) * 10) / 10.0;
+	}
+
+	// 요청 날짜의 날씨 획득
+	private ForecastDTO getDayW(Double lat, Double lon, int timeFromToday, Long date) {
 
 		long now = Instant.now().getEpochSecond();
 
-		// 현재 시각을 기준으로 가장 최근의 API 요청 base_time
+		// API 요청 인자 생성
+		Map<String, String> xy = getXY(lat, lon);
+		String x = xy.get("x");
+		String y = xy.get("y");
+		// 현재 시각을 기준으로 요청 base_time 계산
 		Integer numOfRows = null;
 		String time = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
 		int clock = (int) (now + 35400 - ((now + 32400) / 86400) * 86400) / 10800;
@@ -278,74 +297,273 @@ public class Kma {
 			case 7 -> numOfRows = 36 + 290 * timeFromToday;
 		}
 
-		JsonArray items = getAPIRes(String.format("https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0/getVilageFcst" +
+		JsonArray items = getAPIRes(String.format("https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst" +
 				"?pageNo=1&numOfRows=%d&dataType=JSON&base_date=%s&base_time=%s&nx=%s&ny=%s" +
-				"&authKey=%s", numOfRows, time.substring(0, 8), String.format("%02d00", clock*3-1), x, y, authKey));
+				"&serviceKey=%s", numOfRows, time.substring(0, 8), String.format("%02d00", clock*3-1), x, y, serviceKey));
 
-		DayWDTO result = new DayWDTO();
-		Map<Integer, Map<String, String>> dto = new HashMap<>();
+		if (timeFromToday == 0) {
+			return getTodayW(lat, lon, items, date);
+		} else {
+			return getLaterW(items, date);
+		}
+	}
 
-		// 응답으로부터 예보 정보 획득
+	// 현재 날씨 획득 (getTodayW에 포함)
+	private NowWDTO getNowW(Double lat, Double lon) {
+
+		long now = Instant.now().getEpochSecond();
+		String time = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
+
+		// API 요청 인자 생성
+		Map<String, String> xy = getXY(lat, lon);
+		String x = xy.get("x");
+		String y = xy.get("y");
+		// 현재 시(hour)의 40분이 넘었는지 확인
+		int clock = (int) ((now - ((now + 32400) / 86400) * 86400) + 30000);
+		if (clock < 0) {
+			clock = 23;
+			now -= 86400;
+		}
+		else clock /= 3600;
+
+		// 실황 확인
+		JsonArray ncstItems = getAPIRes(String.format("https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst" +
+				"?pageNo=1&numOfRows=8&dataType=JSON&base_date=%s&base_time=%s&nx=%s&ny=%s&serviceKey=%s",
+				time.substring(0, 8), String.format("%02d00", clock), x, y, serviceKey));
+
+		Double tmp = null;
+		Integer pty = null;
+		Double wsd = null;
+		Integer reh = null;
+		for (JsonElement e : ncstItems.getAsJsonArray()) {
+
+			String category = e.getAsJsonObject().get("category").toString().replace("\"", "");
+			String fcstValue = e.getAsJsonObject().get("obsrValue").toString().replace("\"", "");
+
+			switch (category) {
+				case "T1H" -> tmp = Double.parseDouble(fcstValue);
+				case "PTY" -> pty = Integer.parseInt(fcstValue);
+				case "WSD" -> wsd = Double.parseDouble(fcstValue);
+				case "REH" -> reh = Integer.parseInt(fcstValue);
+			}
+		}
+		if (tmp == null || pty == null || wsd == null || reh == null) throw new CustomException(ResponseCode.COM5000,
+				String.format("현재 날씨 정보에 오류가 있습니다: tmp: %f\tpty: %d\twsd: %f\treh: %d", tmp, pty, wsd, reh));
+
+		// 응답 생성
+		Weather weather = switch (pty) {
+			case 1, 5 -> Weather.RAINY;
+			case 2, 6 -> Weather.SLEET;
+			case 3, 7 -> Weather.SNOWY;
+			default -> null;	// 비나 눈이 아니면 가장 최근 예보를 띄워줄 것임
+		};
+
+		Double diff = Math.round((tmp - getLastW(lat, lon, now)) * 10) / 10.0;
+
+		// 해당하는 달에 따라 체감온도 계산
+		int month = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Seoul")).getMonthValue();
+		Double feel;
+		if (month >= 5 && month <= 9) feel = getSummerFeel(tmp, reh);
+		else feel = getWinterFeel(tmp, wsd);
+
+		return new NowWDTO(tmp, diff, feel, weather, clock == 23 ? 0 : clock + 1);
+	}
+
+	// 오늘 날씨 획득 (getDayW에 포함)
+	private ForecastDTO getTodayW(Double lat, Double lon, JsonArray items, Long date) {
+
+		String reqDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(date), ZoneId.of("Asia/Seoul")).format(kmaFormatter).substring(0, 8);
+
+		ForecastDTO result = new ForecastDTO();
+		Map<Integer, Map<String, String>> fcstRes = new HashMap<>();
+
 		for (JsonElement e : items.getAsJsonArray()) {
 
 			String fcstDate = e.getAsJsonObject().get("fcstDate").toString().replace("\"", "");
 
-			// 요청된 날짜와 같은 날짜에 대해서만 저장
-			if (fcstDate.equals(date)) {
+			if (fcstDate.equals(reqDate)) {
 
 				String category = e.getAsJsonObject().get("category").toString().replace("\"", "");
 				String fcstValue = e.getAsJsonObject().get("fcstValue").toString().replace("\"", "");
 				int fcstTime = Integer.parseInt(e.getAsJsonObject().get("fcstTime").toString().replace("\"", "").substring(0, 2));
 
-				if (!dto.containsKey(fcstTime)) {
-					dto.put(fcstTime, new HashMap<>());
+				if (!fcstRes.containsKey(fcstTime)) {
+					fcstRes.put(fcstTime, new HashMap<>());
 				}
 				switch (category) {
-					case "TMP" -> dto.get(fcstTime).put("tmp", fcstValue);
-					case "POP" -> dto.get(fcstTime).put("pop", fcstValue);
-					case "PTY" -> dto.get(fcstTime).put("pty", fcstValue);
-					case "SKY" -> dto.get(fcstTime).put("sky", fcstValue);
+					case "TMP" -> fcstRes.get(fcstTime).put("tmp", fcstValue);
+					case "POP" -> fcstRes.get(fcstTime).put("pop", fcstValue);
+					case "PTY" -> fcstRes.get(fcstTime).put("pty", fcstValue);
+					case "SKY" -> fcstRes.get(fcstTime).put("sky", fcstValue);
 					case "TMN" -> result.setMin(Double.valueOf(fcstValue).longValue());
 					case "TMX" -> result.setMax(Double.valueOf(fcstValue).longValue());
 				}
 			}
 		}
 
-		List<FcstDTO> fcst = new ArrayList<>();
+		result.setFcst(new ArrayList<>());
 
-		for (Integer fcstTime : dto.keySet()) {
+		for (Integer fcstTime : fcstRes.keySet()) {
 
-			int pty = Integer.parseInt(dto.get(fcstTime).get("pty"));
-			Weather weather;
+			Weather weather = switch (Integer.parseInt(fcstRes.get(fcstTime).get("pty"))) {
+				case 1, 4 -> Weather.RAINY;
+				case 2 -> Weather.SLEET;
+				case 3 -> Weather.SNOWY;
+				default -> switch (Integer.parseInt(fcstRes.get(fcstTime).get("sky"))) {
+					case 1 -> Weather.SUNNY;
+					case 3 -> Weather.PARTLY_CLOUDY;
+					case 4 -> Weather.CLOUDY;
+					default -> throw new CustomException(ResponseCode.COM5000);
+				};
+			};
+			long tmp = Long.parseLong(fcstRes.get(fcstTime).get("tmp"));
+			int pop = Integer.parseInt(fcstRes.get(fcstTime).get("pop"));
 
-			if (pty == 1 | pty == 4) weather = Weather.RAINY;
-			else if (pty == 2) weather = Weather.SLEET;
-			else if (pty == 3)	weather = Weather.SNOWY;
-			else {
-				int sky = Integer.parseInt(dto.get(fcstTime).get("sky"));
-				if (sky == 1)	weather = Weather.SUNNY;
-				else if (sky == 3)	weather = Weather.PARTLY_CLOUDY;
-				else if (sky == 4)	weather = Weather.CLOUDY;
-				else throw new CustomException(ResponseCode.COM5000);
-			}
-			Long tmp = Long.valueOf(dto.get(fcstTime).get("tmp"));
-			Integer pop = Integer.valueOf(dto.get(fcstTime).get("pop"));
-
-			fcst.add(new FcstDTO(fcstTime, tmp, pop, weather));
+			result.getFcst().add(new FcstDTO(fcstTime, tmp, pop, weather));
 		}
 
-		result.setFcst(fcst);
+		// 현재 날씨를 획득
+		NowWDTO nowW = getNowW(lat, lon);
+		result.setNow(nowW.getNow());
+		result.setDiff(nowW.getDiff());
+		result.setFeel(nowW.getFeel());
+
+		Weather weather = nowW.getWeather();
+		if (weather == null) {
+			int clock = nowW.getClock();
+			weather = switch (Integer.parseInt(fcstRes.get(clock).get("sky"))) {
+				case 1 -> Weather.SUNNY;
+				case 3 -> Weather.PARTLY_CLOUDY;
+				case 4 -> Weather.CLOUDY;
+				default -> throw new CustomException(ResponseCode.COM5000);
+			};
+		}
+		result.setWeather(weather);
 
 		return result;
 	}
 
-	// 현재 날씨 획득
-	private List<FcstDTO> getNowW(Integer x, Integer y) {
+	// 미래 날씨 획득 (getDayW에 포함)
+	private ForecastDTO getLaterW(JsonArray items, Long date) {
 
-		// https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0/getVilageFcst
-		// ?pageNo=1&numOfRows=%d&dataType=JSON&base_date=%s&base_time=%s&nx=%s&ny=%s
-		// &authKey=%s
-		long now = Instant.now().getEpochSecond();
+		// 단기예보 API 호출 및 내일or모레에 대한 기온/하늘상태 획득
+
+		LocalDateTime reqDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(date), ZoneId.of("Asia/Seoul"));
+		String reqDate = reqDateTime.format(kmaFormatter).substring(0, 8);
+
+		ForecastDTO result = new ForecastDTO();
+		Map<Integer, Map<String, String>> fcstRes = new HashMap<>();
+
+		// 응답으로부터 요청된 날짜에 대한 예보만을 획득
+		for (JsonElement e : items.getAsJsonArray()) {
+
+			String fcstDate = e.getAsJsonObject().get("fcstDate").toString().replace("\"", "");
+
+			if (fcstDate.equals(reqDate)) {
+
+				String category = e.getAsJsonObject().get("category").toString().replace("\"", "");
+				String fcstValue = e.getAsJsonObject().get("fcstValue").toString().replace("\"", "");
+				int fcstTime = Integer.parseInt(e.getAsJsonObject().get("fcstTime").toString().replace("\"", "").substring(0, 2));
+
+				if (!fcstRes.containsKey(fcstTime)) {
+					fcstRes.put(fcstTime, new HashMap<>());
+				}
+				switch (category) {
+					case "TMP" -> fcstRes.get(fcstTime).put("tmp", fcstValue);
+					case "POP" -> fcstRes.get(fcstTime).put("pop", fcstValue);
+					case "PTY" -> fcstRes.get(fcstTime).put("pty", fcstValue);
+					case "SKY" -> fcstRes.get(fcstTime).put("sky", fcstValue);
+					case "REH" -> fcstRes.get(fcstTime).put("reh", fcstValue);
+					case "WSD" -> fcstRes.get(fcstTime).put("wsd", fcstValue);
+					case "TMN" -> result.setMin(Double.valueOf(fcstValue).longValue());
+					case "TMX" -> result.setMax(Double.valueOf(fcstValue).longValue());
+				}
+			}
+		}
+
+		result.setFcst(new ArrayList<>());
+
+		double tmpSum = 0.0;
+		// 순서대로 SLEET, RAINNY, SNOWY, PARTLY_CLOUDY, CLOUDY, SUNNY
+		int[] weatherCount = {0, 0, 0, 0, 0, 0};
+		int month = reqDateTime.getMonthValue();
+		double feelSum = 0.0;
+
+		for (Integer fcstTime : fcstRes.keySet()) {
+
+			Weather weather = switch (Integer.parseInt(fcstRes.get(fcstTime).get("pty"))) {
+				case 1, 4 -> {
+					if (fcstTime >= 9 && fcstTime <= 21) weatherCount[2] += 1;
+					yield Weather.RAINY;
+				}
+				case 2 -> {
+					if (fcstTime >= 9 && fcstTime <= 21) weatherCount[0] += 1;
+					yield Weather.SLEET;
+				}
+				case 3 -> {
+					if (fcstTime >= 9 && fcstTime <= 21) weatherCount[1] += 1;
+					yield Weather.SNOWY;
+				}
+				default -> switch (Integer.parseInt(fcstRes.get(fcstTime).get("sky"))) {
+					case 1 -> {
+						if (fcstTime >= 9 && fcstTime <= 21) weatherCount[5] += 1;
+						yield Weather.SUNNY;
+					}
+					case 3 -> {
+						if (fcstTime >= 9 && fcstTime <= 21) weatherCount[3] += 1;
+						yield Weather.PARTLY_CLOUDY;
+					}
+					case 4 -> {
+						if (fcstTime >= 9 && fcstTime <= 21) weatherCount[4] += 1;
+						yield Weather.CLOUDY;
+					}
+					default -> throw new CustomException(ResponseCode.COM5000);
+				};
+			};
+			long tmp = Long.parseLong(fcstRes.get(fcstTime).get("tmp"));
+			int pop = Integer.parseInt(fcstRes.get(fcstTime).get("pop"));
+
+			result.getFcst().add(new FcstDTO(fcstTime, tmp, pop, weather));	// 예보
+
+			if (fcstTime >= 9 && fcstTime <= 21) {
+				tmpSum += tmp;
+				if (month >= 5 && month <= 9) {
+					int reh = Integer.parseInt(fcstRes.get(fcstTime).get("reh"));
+					feelSum += getSummerFeel((double) tmp, reh);
+				}
+				else {
+					double wsd = Double.parseDouble(fcstRes.get(fcstTime).get("wsd"));
+					feelSum += getWinterFeel((double) tmp, wsd);
+				}
+			}
+		}
+
+		// 평균 기온 및 체감온도
+		double tmpAvg = (Math.round(tmpSum / 13 * 10)) / 10.0;
+		result.setNow(tmpAvg);
+		result.setFeel((Math.round(feelSum / 13 * 10)) / 10.0);
+
+		// 평균 하늘상태
+		Weather weatherAvg = null;
+		int max = -1;
+		int maxIdx = -1;
+		for (int i = 0; i < 6; i++) {
+			if (weatherCount[i] > max) {
+				max = weatherCount[i];
+				maxIdx = i;
+			}
+		}
+		switch (maxIdx) {
+			case 0: weatherAvg = Weather.SLEET; break;
+			case 1: if (weatherCount[0] == weatherCount[1]) weatherAvg = Weather.SLEET; else weatherAvg = Weather.RAINY; break;
+			case 2: weatherAvg = Weather.SNOWY; break;
+			case 3: weatherAvg = Weather.PARTLY_CLOUDY; break;
+			case 4: if (weatherCount[3] == weatherCount[4]) weatherAvg = Weather.PARTLY_CLOUDY; else weatherAvg = Weather.CLOUDY; break;
+			case 5: weatherAvg = Weather.SUNNY; break;
+		}
+		result.setWeather(weatherAvg);
+
+		return result;
 	}
 
 	/** 요청 날짜의 날씨 및 예보 조회 */
@@ -353,49 +571,10 @@ public class Kma {
 
 		// 오늘로부터 어느 시점에 대한 요청인지 확인 (0: 오늘, 1: 내일, 2: 모레)
 		long now = Instant.now().getEpochSecond();
-		int timeFromToday = (int) ((date - now) / 86400 + 1);
+		int timeFromToday = (int) (date - now + 32400);
+		log.debug("timeFromToday = {}", timeFromToday);
+		if (timeFromToday < 0 || timeFromToday / 86400 > 2) throw new CustomException(ResponseCode.COM4000);
 
-		// 날짜를 API 요청 형식으로 변환
-		String reqNowTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(date), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
-
-		// 위도/경도를 X/Y 격자로 변환
-		Map<String, String> xy = getXY(lat, lon);
-		String x = xy.get("x");
-		String y = xy.get("y");
-
-		ForecastDTO res = new ForecastDTO();
-
-		switch (timeFromToday) {
-			case 0 -> {
-				// 초단기예보 API 호출 및 현재 기온/강수형태/하늘상태 획득, 풍속/습도 획득하여 체감온도 계산
-
-				// 현재 날씨를 획득
-				res.setNow();
-				res.setDiff();
-				res.setFeel();
-				res.setWeather();
-			}
-			case 1, 2 -> {
-				// 최저/최고 기온 및 하루 예보 획득
-
-				res.setDiff(null);
-				res.setFeel(null);
-
-				// 단기예보 API 호출 및 내일or모레에 대한 기온/하늘상태 획득
-
-				// 요청 날짜의 9-9 평균 기온 및 평균 하늘상태를 획득
-				res.setNow();
-				res.setWeather();
-			}
-			default -> throw new CustomException(ResponseCode.COM4000);
-		}
-
-		// 최저/최고 기온 및 하루 예보 획득
-		DayWDTO fcst= getDayW(x, y, timeFromToday, reqNowTime.substring(0, 8));
-		res.setMin(fcst.getMin());
-		res.setMax(fcst.getMax());
-		res.setFcst(fcst.getFcst());
-
-		return res;
+		return getDayW(lat, lon, timeFromToday / 86400, date);
 	}
 }
