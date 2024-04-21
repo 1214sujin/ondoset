@@ -136,21 +136,28 @@ public class MemberService {
 	public void postProfilePic(ProfilePicDTO req) {
 
 		MultipartFile pic = req.getImage();
+		log.info("pic = {}", pic);
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
-		if (pic.isEmpty()) throw new CustomException(ResponseCode.COM4000, "파일이 비어 있습니다.");
+		if (pic == null || pic.isEmpty()) {
 
-		String filename = pic.getOriginalFilename();
-		filename = "/profile/"+member.getId().toString()+"_"+filename;
-		Path savePath = Paths.get(resourcesPath+filename);
-
-		try {
-			pic.transferTo(savePath);
-			member.setProfileImage(filename);
+			member.setProfileImage(null);
 			memberRepository.save(member);
 		}
-		catch (Exception e) {
-			throw new CustomException(ResponseCode.COM4150);
+		else {
+
+			String filename = pic.getOriginalFilename();
+			filename = "/profile/"+member.getId().toString()+"_"+filename;
+			Path savePath = Paths.get(resourcesPath+filename);
+
+			try {
+				pic.transferTo(savePath);
+				member.setProfileImage(filename);
+				memberRepository.save(member);
+			}
+			catch (Exception e) {
+				throw new CustomException(ResponseCode.COM4150);
+			}
 		}
 	}
 

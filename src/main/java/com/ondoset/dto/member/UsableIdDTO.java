@@ -1,5 +1,6 @@
 package com.ondoset.dto.member;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +10,7 @@ public class UsableIdDTO {
 	@Setter
 	public static class req {
 
+		@NotBlank
 		private String memberId;
 	}
 

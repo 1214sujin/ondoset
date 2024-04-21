@@ -1,5 +1,6 @@
 package com.ondoset.dto.member;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,5 +8,6 @@ import lombok.Setter;
 @Setter
 public class NicknameDTO {
 
+	@NotBlank
 	public String nickname;
 }

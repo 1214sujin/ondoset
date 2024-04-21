@@ -49,6 +49,11 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
 		log.info("username = {}", name);
 
+		if (name.equals("") || password.equals("")) {
+			new TokenException(ResponseCode.COM4000).sendResponseError(response);
+			return null;
+		}
+
 		//스프링 시큐리티에서 username과 password를 검증하기 위해서는 token에 담아야 함
 		UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(name, password, null);
 

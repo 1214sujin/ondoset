@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -52,6 +53,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	@Override
 	public ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode status, WebRequest request){
 		log.error(ex.getMessage());
+
+		if (ex.getClass() == MethodArgumentNotValidException.class) {
+			return ResponseEntity.badRequest().body(new ResponseMessage<>(ResponseCode.COM4000, ""));
+		}
 		return ResponseEntity.status(500).body(new ResponseMessage<>(ResponseCode.COM5000, ""));
 	}
 }
