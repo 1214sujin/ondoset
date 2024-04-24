@@ -231,7 +231,6 @@ public class Kma {
 	}
 
 	// 어제와의 기온 비교를 위해 과거 관측 값 획득 (getNowW에 포함)
-	// (오전 11시부터 가능.. **추후 확인 및 처리하기!**) >> 일단 0시 확인 불가, 4시 확인 가능
 	private Double getLastW(Double lat, Double lon, Long todayDate) {
 
 		// 날짜를 API 요청 형식으로 변환
