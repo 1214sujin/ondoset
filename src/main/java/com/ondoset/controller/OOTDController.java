@@ -2,9 +2,9 @@ package com.ondoset.controller;
 
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
-import com.ondoset.dto.ootd.MyProfileDTO;
-import com.ondoset.dto.ootd.MyProfilePageDTO;
+import com.ondoset.dto.ootd.*;
 import com.ondoset.service.OOTDService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -29,9 +29,33 @@ public class OOTDController {
 	}
 
 	@GetMapping("/my-profile/page")
-	public ResponseEntity<ResponseMessage<MyProfilePageDTO.res>> getMyProfilePage(MyProfilePageDTO.req req) {
+	public ResponseEntity<ResponseMessage<MyProfilePageDTO>> getMyProfilePage(PageDTO req) {
 
-		MyProfilePageDTO.res res = ootdService.getMyProfilePage(req);
+		MyProfilePageDTO res = ootdService.getMyProfilePage(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping("/weather")
+	public ResponseEntity<ResponseMessage<OotdPageDTO>> getWeather(@Valid WeatherDTO req) {
+
+		OotdPageDTO res = ootdService.getWeather(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping("/like-list")
+	public ResponseEntity<ResponseMessage<OotdPageDTO>> getLikeList(PageDTO req) {
+
+		OotdPageDTO res = ootdService.getLikeList(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping("/follow-list")
+	public ResponseEntity<ResponseMessage<FollowingPageDTO>> getFollowList(PageDTO req) {
+
+		FollowingPageDTO res = ootdService.getFollowList(req);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}

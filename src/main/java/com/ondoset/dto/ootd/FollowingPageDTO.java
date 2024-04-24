@@ -7,8 +7,8 @@ import java.util.List;
 
 @Getter
 @Setter
-public class MyProfilePageDTO {
+public class FollowingPageDTO {
 
 	private Long lastPage;
-	private List<Ootd> ootdList;
+	private List<ProfileShort> followingList;
 }

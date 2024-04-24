@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -36,4 +39,7 @@ public class Member extends BaseEntity {
 
 	// 정지 기간
 	private Integer banPeriod;
+
+	@OneToMany(mappedBy = "follower")
+	private List<Following> followings = new ArrayList<>();
 }

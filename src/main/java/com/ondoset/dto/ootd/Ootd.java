@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OotdDTO {
+public class Ootd {
 
 	private Long ootdId;
 	private Long date;
