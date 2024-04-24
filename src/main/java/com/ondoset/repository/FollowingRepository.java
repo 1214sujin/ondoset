@@ -19,4 +19,10 @@ public interface FollowingRepository extends JpaRepository<Following, Long> {
 
 	@Query("select f from Following f where f.follower=:member and f.id<:lastPage order by f.id desc limit 24")
 	List<Following> pageFollowing(@Param("member") Member member, @Param("lastPage") Long lastPage);
+
+	@Query("select f from Following f join f.followed m where f.follower=:member and m.nickname like concat('%',:search,'%') order by f.id desc limit 24")
+	List<Following> pageFollowingSearch(@Param("member") Member member, @Param("search") String search);
+
+	@Query("select f from Following f join f.followed m where f.follower=:member and m.nickname like concat('%',:search,'%') and f.id<:lastPage order by f.id desc limit 24")
+	List<Following> pageFollowingSearch(@Param("member") Member member, @Param("search") String search, @Param("lastPage") Long lastPage);
 }

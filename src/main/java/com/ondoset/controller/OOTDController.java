@@ -52,7 +52,7 @@ public class OOTDController {
 	}
 
 	@GetMapping("/follow-list")
-	public ResponseEntity<ResponseMessage<FollowingPageDTO>> getFollowList(PageDTO req) {
+	public ResponseEntity<ResponseMessage<FollowingPageDTO>> getFollowList(FollowingSearchDTO req) {
 
 		FollowingPageDTO res = ootdService.getFollowList(req);
 

@@ -153,20 +153,31 @@ public class OOTDService {
 		return res;
 	}
 
-	public FollowingPageDTO getFollowList(PageDTO req) {
+	public FollowingPageDTO getFollowList(FollowingSearchDTO req) {
 
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
 		// req 분해
+		String search = req.getSearch();
 		Long lastPage = req.getLastPage();
 
 		// 현재 사용자가 팔로잉하고 있는 아이디 목록 및 팔로잉 튜플 pk 획득
 		List<Following> followingList;
-		if (lastPage.equals(-1L)) {
-			followingList = followingRepository.pageFollowing(member);
+		if (search == null) {
+
+			if (lastPage.equals(-1L)) {
+				followingList = followingRepository.pageFollowing(member);
+			} else {
+				followingList = followingRepository.pageFollowing(member, lastPage);
+			}
 		} else {
-			followingList = followingRepository.pageFollowing(member, lastPage);
+
+			if (lastPage.equals(-1L)) {
+				followingList = followingRepository.pageFollowingSearch(member, search);
+			} else {
+				followingList = followingRepository.pageFollowingSearch(member, search, lastPage);
+			}
 		}
 
 		// 아이디를 바탕으로 멤버 조회 및 ootd 개수 카운트
