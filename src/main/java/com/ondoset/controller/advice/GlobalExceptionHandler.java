@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.NoSuchElementException;
+
 @Log4j2
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -38,6 +40,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler
 	public ResponseEntity<ResponseMessage<String>> HandleDataIntegrityViolationException(DataIntegrityViolationException e) {
 		return handleExceptionInternal(ResponseCode.DB5000);
+	}
+
+	@ExceptionHandler
+	public ResponseEntity<ResponseMessage<String>> HandleNoSuchElementException(NoSuchElementException e) {
+		return handleExceptionInternal(ResponseCode.COM4000);
 	}
 
 	private ResponseEntity<ResponseMessage<String>> handleExceptionInternal (ResponseCode responseCode) {

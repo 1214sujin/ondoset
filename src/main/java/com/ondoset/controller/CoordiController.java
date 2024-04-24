@@ -20,7 +20,7 @@ public class CoordiController {
 
 	private final CoordiService coordiService;
 
-	@PostMapping("")	// 이유는 잘 모르겠는데 "/"로 매핑했더니 동작하지 않음
+	@PostMapping({"/", ""})
 	public ResponseEntity<ResponseMessage<RootDTO.res>> postRoot(@RequestBody RootDTO.req req) {
 
 		RootDTO.res res = coordiService.postRoot(req);

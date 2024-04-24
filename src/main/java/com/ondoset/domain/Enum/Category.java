@@ -14,4 +14,8 @@ public enum Category {
     ACC("액세서리");
 
     private final String name;
+
+    public static Category valueOfLower(String name) {
+        return Category.valueOf(name.toUpperCase());
+    }
 }

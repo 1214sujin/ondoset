@@ -12,4 +12,8 @@ public enum Thickness {
     THICK("두꺼운");
 
     private final String name;
+
+    public static Thickness valueOfLower(String name) {
+        return Thickness.valueOf(name.toUpperCase());
+    }
 }

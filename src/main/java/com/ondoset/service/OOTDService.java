@@ -1,9 +1,11 @@
 package com.ondoset.service;
 
+import com.ondoset.domain.Enum.Weather;
 import com.ondoset.domain.Member;
 import com.ondoset.dto.ootd.MyProfileDTO;
 import com.ondoset.dto.ootd.MyProfilePageDTO;
 import com.ondoset.dto.ootd.OotdDTO;
+import com.ondoset.dto.ootd.WeatherDTO;
 import com.ondoset.repository.FollowingRepository;
 import com.ondoset.repository.LikeRepository;
 import com.ondoset.repository.MemberRepository;
@@ -31,8 +33,7 @@ public class OOTDService {
 	public MyProfileDTO getMyProfile() {
 
 		// 현재 사용자 조회
-		String name = SecurityContextHolder.getContext().getAuthentication().getName();
-		Member member = memberRepository.findByName(name);
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
 		// 사용자의 ootd 10개 조회
 		List<OotdDTO> ootdList = ootdRepository.pageMyProfile(TimeZone.getDefault().getRawOffset(), member);
@@ -63,8 +64,7 @@ public class OOTDService {
 	public MyProfilePageDTO.res getMyProfilePage(MyProfilePageDTO.req req) {
 
 		// 현재 사용자 조회
-		String name = SecurityContextHolder.getContext().getAuthentication().getName();
-		Member member = memberRepository.findByName(name);
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
 		// 사용자의 ootd 10개 조회
 		List<OotdDTO> ootdList = ootdRepository.pageMyProfile(TimeZone.getDefault().getRawOffset(), member, req.getLastPage());
