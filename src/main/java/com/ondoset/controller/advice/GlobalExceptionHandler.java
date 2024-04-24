@@ -44,7 +44,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler
 	public ResponseEntity<ResponseMessage<String>> HandleNoSuchElementException(NoSuchElementException e) {
-		return handleExceptionInternal(ResponseCode.COM4000);
+		return handleExceptionInternal(ResponseCode.COM4091);
 	}
 
 	private ResponseEntity<ResponseMessage<String>> handleExceptionInternal (ResponseCode responseCode) {

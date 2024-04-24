@@ -17,6 +17,8 @@ public interface OOTDRepository extends JpaRepository<OOTD, Long> {
 
 	Long countByMember(Member member);
 
+	Boolean existsByIdAndMember(Long id, Member member);
+
 	@Query("select new com.ondoset.dto.ootd.Ootd(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o where o.member=:member and o.reportedCount<5 and o.isBlinded=false order by o.id desc limit 10")
 	List<Ootd> pageMyProfile(@Param("member") Member member);

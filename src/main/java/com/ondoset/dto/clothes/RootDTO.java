@@ -21,6 +21,8 @@ public class RootDTO {
 		@Enum(enumClass = Thickness.class)
 		private String thickness;
 		private MultipartFile image;
+		@NotNull
+		private Boolean imageUpdated;
 	}
 
 	@Getter

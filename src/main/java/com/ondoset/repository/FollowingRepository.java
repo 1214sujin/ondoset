@@ -14,9 +14,9 @@ public interface FollowingRepository extends JpaRepository<Following, Long> {
 
 	Long countByFollower(Member member);
 
-	@Query("select f from Following f where f.follower=:member order by f.id desc limit 10")
+	@Query("select f from Following f where f.follower=:member order by f.id desc limit 24")
 	List<Following> pageFollowing(@Param("member") Member member);
 
-	@Query("select f from Following f where f.follower=:member and f.id<:lastPage order by f.id desc limit 10")
+	@Query("select f from Following f where f.follower=:member and f.id<:lastPage order by f.id desc limit 24")
 	List<Following> pageFollowing(@Param("member") Member member, @Param("lastPage") Long lastPage);
 }

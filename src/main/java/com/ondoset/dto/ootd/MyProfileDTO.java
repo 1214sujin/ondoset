@@ -9,7 +9,9 @@ import java.util.List;
 @Setter
 public class MyProfileDTO {
 
+	private String memberId;
 	private String nickname;
+	private String profileImage;
 	private Long ootdCount;
 	private Long likeCount;
 	private Long followingCount;

@@ -15,6 +15,8 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long> {
 
 	List<Clothes> findByIdIn(List<Long> idList);
 
+	Boolean existsByIdAndMember(Long id, Member member);
+
 	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, ct.thickness)" +
 			"from Clothes ct join ct.tag t where ct.member=:member order by ct.id desc limit 18")
 	List<ClothesDTO> pageAllClothes(@Param("member") Member member);

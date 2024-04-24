@@ -129,8 +129,7 @@ public class ClothesService {
 		}
 		else {
 
-			String filename = image.getOriginalFilename();
-			filename = "/clothes/"+ UUID.randomUUID() +"_"+filename;
+			String filename = "/clothes/" + UUID.randomUUID() + "_" + image.getOriginalFilename();
 			Path savePath = Paths.get(resourcesPath+filename);
 
 			try {
@@ -154,7 +153,11 @@ public class ClothesService {
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
-		// 요청된 옷 엔티티 획득
+		if (!clothesRepository.existsByIdAndMember(clothesId, member)) {
+			throw new CustomException(ResponseCode.COM4010, "요청된 자원에 접근할 수 없는 계정입니다: " + member.getName());
+		}
+
+		// 요청된 옷 엔티티 획득	// get이 불가능할 경우에 대한 오류 처리는 GlobalAdvisor에서 해줌!
 		Clothes clothes = clothesRepository.findById(clothesId).get();
 
 		// clothes 엔티티 수정
@@ -164,36 +167,41 @@ public class ClothesService {
 		clothes.setThickness(Thickness.valueOfLower(req.getThickness()));
 
 		// 이미지 처리
-		MultipartFile image = req.getImage();
+		Boolean imageUpdated = req.getImageUpdated();
+		// imageUpdated가 true인 경우, req.image를 수정
+		if (imageUpdated) {
 
-		// 이미지가 삭제돼서 null값이 넘어오는 경우가 아니라,
-		// 수정하지 않아서 null값이 넘어오는 경우에 대한 처리 필요!! (추후 수정))
+			MultipartFile image = req.getImage();
 
-		// 기존에 존재하던 이미지 파일은 삭제(확장자가 다를 수도 있을 것 같아서 보내주는 파일명을 항상 그대로 사용)
-		String existingImage = clothes.getImageURL();
-		if (existingImage != null) new File(resourcesPath+existingImage).delete();
+			// 기존에 존재하던 이미지 파일은 삭제(확장자가 다를 수도 있으니 보내주는 파일명을 항상 그대로 사용)
+			String existingImage = clothes.getImageURL();
+			if (existingImage != null) new File(resourcesPath+existingImage).delete();
 
-		if (image == null || image.isEmpty()) {
+			if (image == null || image.isEmpty()) {
 
-			clothes.setImageURL(null);
-		}
-		else {
-
-			String filename = "/clothes/"+ UUID.randomUUID() +"_"+image.getOriginalFilename();
-			Path savePath = Paths.get(resourcesPath+filename);
-
-			try {
-				image.transferTo(savePath);
-				clothes.setImageURL(filename);
+				clothes.setImageURL(null);
 			}
-			catch (Exception e) {
-				throw new CustomException(ResponseCode.COM4150);
+			else {
+
+				String filename = "/clothes/" + UUID.randomUUID() + "_" + image.getOriginalFilename();
+				Path savePath = Paths.get(resourcesPath+filename);
+
+				try {
+					image.transferTo(savePath);
+					clothes.setImageURL(filename);
+				}
+				catch (Exception e) {
+					throw new CustomException(ResponseCode.COM4150);
+				}
 			}
 		}
+		// imageUpdated가 false인 경우, 넘어감
+
+		clothesRepository.save(clothes);
 
 		// 응답 정의
 		RootDTO.res res = new RootDTO.res();
-		res.setClothesId(clothesRepository.save(clothes).getId());
+		res.setClothesId(clothes.getId());
 
 		return res;
 	}
@@ -203,13 +211,12 @@ public class ClothesService {
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
-		// 요청된 옷 엔티티 획득
-		Optional<Clothes> clothesOptional = clothesRepository.findById(clothesId);
-
-		if (clothesOptional.isEmpty()) {
-			throw new CustomException(ResponseCode.COM4091);
+		if (!clothesRepository.existsByIdAndMember(clothesId, member)) {
+			throw new CustomException(ResponseCode.COM4010, "요청된 자원에 접근할 수 없는 계정입니다: " + member.getName());
 		}
-		Clothes clothes = clothesOptional.get();
+
+		// 요청된 옷 엔티티 획득
+		Clothes clothes = clothesRepository.findById(clothesId).get();
 
 		// 이미지 파일 삭제
 		String existingImage = clothes.getImageURL();
