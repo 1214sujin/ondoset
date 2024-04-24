@@ -77,12 +77,12 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 		response.setContentType("application/json");
 		response.setCharacterEncoding("utf-8");
 
-		LoginDTO.res res = new LoginDTO.res();
+		LoginDTO res = new LoginDTO();
 		res.setIsFirst(isFirst);
 		res.setAccessToken(accessToken);
 		res.setRefreshToken(refreshToken);
 
-		ResponseMessage<LoginDTO.res> message = new ResponseMessage<>(ResponseCode.COM2000, res);
+		ResponseMessage<LoginDTO> message = new ResponseMessage<>(ResponseCode.COM2000, res);
 		String result = gson.toJson(message);
 		response.getWriter().write(result);
 	}

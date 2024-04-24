@@ -570,11 +570,11 @@ public class Kma {
 	public ForecastDTO getForecast(Double lat, Double lon, Long date) {
 
 		// 오늘로부터 어느 시점에 대한 요청인지 확인 (0: 오늘, 1: 내일, 2: 모레)
-		long now = Instant.now().getEpochSecond();
-		int timeFromToday = (int) (date - now + 32400);
+		long now = (Instant.now().getEpochSecond()+32400)/86400;
+		int timeFromToday = (int) ((date + 32400) / 86400 - now);
 		log.debug("timeFromToday = {}", timeFromToday);
-		if (timeFromToday < 0 || timeFromToday / 86400 > 2) throw new CustomException(ResponseCode.COM4000);
+		if (timeFromToday < 0 || timeFromToday > 2) throw new CustomException(ResponseCode.COM4000);
 
-		return getDayW(lat, lon, timeFromToday / 86400, date);
+		return getDayW(lat, lon, timeFromToday, date);
 	}
 }
