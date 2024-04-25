@@ -2,6 +2,7 @@ package com.ondoset.service;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.domain.Clothes;
+import com.ondoset.domain.Enum.Category;
 import com.ondoset.domain.Enum.Thickness;
 import com.ondoset.dto.clothes.*;
 import com.ondoset.repository.*;
@@ -72,10 +73,30 @@ public class ClothesService {
 
 		// 사용자의 clothes 18개 조회
 		List<ClothesDTO> clothesList;
-		if (reqLastPage == -1) {
-			clothesList = clothesRepository.pageAllClothes(member);
+		String reqCategory = req.getCategory();
+		if (reqCategory != null) {
+
+			// 카테고리가 요청된 경우
+			Category category;
+			try {
+				category = Category.valueOfLower(reqCategory);
+			} catch (Exception e) {
+				throw new CustomException(ResponseCode.COM4000);
+			}
+
+			if (reqLastPage == -1) {
+				clothesList = clothesRepository.pageAllClothes(member, category);
+			} else {
+				clothesList = clothesRepository.pageAllClothes(member, category, reqLastPage);
+			}
 		} else {
-			clothesList = clothesRepository.pageAllClothes(member, reqLastPage);
+
+			// 전체 요청된 경우
+			if (reqLastPage == -1) {
+				clothesList = clothesRepository.pageAllClothes(member);
+			} else {
+				clothesList = clothesRepository.pageAllClothes(member, reqLastPage);
+			}
 		}
 
 		// 마지막에 조회된 clothes id
@@ -157,8 +178,9 @@ public class ClothesService {
 			throw new CustomException(ResponseCode.COM4010, "요청된 자원에 접근할 수 없는 계정입니다: " + member.getName());
 		}
 
-		// 요청된 옷 엔티티 획득	// get이 불가능할 경우에 대한 오류 처리는 GlobalAdvisor에서 해줌!
+		// 요청된 옷 엔티티 획득
 		Clothes clothes = clothesRepository.findById(clothesId).get();
+		if (clothes.getIsDeleted()) throw new CustomException(ResponseCode.COM4091);
 
 		// clothes 엔티티 수정
 		clothes.setMember(member);
@@ -194,8 +216,7 @@ public class ClothesService {
 					throw new CustomException(ResponseCode.COM4150);
 				}
 			}
-		}
-		// imageUpdated가 false인 경우, 넘어감
+		} // imageUpdated가 false인 경우, 넘어감
 
 		clothesRepository.save(clothes);
 
@@ -218,10 +239,7 @@ public class ClothesService {
 		// 요청된 옷 엔티티 획득
 		Clothes clothes = clothesRepository.findById(clothesId).get();
 
-		// 이미지 파일 삭제
-		String existingImage = clothes.getImageURL();
-		if (existingImage != null) new File(resourcesPath+existingImage).delete();
-
-		clothesRepository.delete(clothes);
+		// 삭제할 시 연결된 coordi 데이터에 영향이 갈 수 있으므로, isDeleted 값만 변경
+		clothes.setIsDeleted(true);
 	}
 }

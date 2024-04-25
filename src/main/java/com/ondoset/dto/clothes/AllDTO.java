@@ -11,6 +11,7 @@ public class AllDTO {
 	@Setter
 	public static class req {
 
+		private String category;
 		private Long lastPage;
 	}
 
