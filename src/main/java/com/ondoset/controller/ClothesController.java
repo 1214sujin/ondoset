@@ -54,7 +54,7 @@ public class ClothesController {
 	}
 
 	@PutMapping("/{clothesId}")
-	public ResponseEntity<ResponseMessage<RootDTO.res>> putRoot(@PathVariable("clothesId") Long clothesId, @Valid RootDTO.req req) {
+	public ResponseEntity<ResponseMessage<RootDTO.res>> putRoot(@PathVariable("clothesId") Long clothesId, @Valid RootDTO.putReq req) {
 
 		RootDTO.res res = clothesService.putRoot(clothesId, req);
 

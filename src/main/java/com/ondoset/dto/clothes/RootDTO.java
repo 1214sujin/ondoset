@@ -21,6 +21,19 @@ public class RootDTO {
 		@Enum(enumClass = Thickness.class)
 		private String thickness;
 		private MultipartFile image;
+	}
+
+	@Getter
+	@Setter
+	public static class putReq {
+
+		@NotEmpty
+		private String name;
+		@NotNull
+		private Long tagId;
+		@Enum(enumClass = Thickness.class)
+		private String thickness;
+		private MultipartFile image;
 		@NotNull
 		private Boolean imageUpdated;
 	}

@@ -148,7 +148,7 @@ public class ClothesService {
 		return res;
 	}
 
-	public RootDTO.res putRoot(Long clothesId, RootDTO.req req) {
+	public RootDTO.res putRoot(Long clothesId, RootDTO.putReq req) {
 
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
