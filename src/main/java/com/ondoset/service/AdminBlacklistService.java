@@ -14,7 +14,7 @@ import java.util.List;
 @Log4j2
 @RequiredArgsConstructor
 @Service
-public class AdminService {
+public class AdminBlacklistService {
 
 	private final MemberRepository memberRepository;
 
@@ -23,7 +23,7 @@ public class AdminService {
 		return memberRepository.findByBanPeriodGreaterThan();
 	}
 
-	public PutRootDTO.res putRoot(Long memberId, PutRootDTO.req req) {
+	public PutRootDTO.res putRoot(Long memberId, @Valid PutRootDTO.req req) {
 
 		Member member = memberRepository.findById(memberId).get();
 
