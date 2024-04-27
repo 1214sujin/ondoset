@@ -2,9 +2,9 @@ package com.ondoset.jwt;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.ondoset.controller.Advice.ResponseCode;
-import com.ondoset.controller.Advice.ResponseMessage;
-import com.ondoset.dto.Member.LoginDTO;
+import com.ondoset.controller.advice.ResponseCode;
+import com.ondoset.controller.advice.ResponseMessage;
+import com.ondoset.dto.member.LoginDTO;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,6 +49,11 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
 		log.info("username = {}", name);
 
+		if (name.equals("") || password.equals("")) {
+			new TokenException(ResponseCode.COM4000).sendResponseError(response);
+			return null;
+		}
+
 		//스프링 시큐리티에서 username과 password를 검증하기 위해서는 token에 담아야 함
 		UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(name, password, null);
 
@@ -72,12 +77,12 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 		response.setContentType("application/json");
 		response.setCharacterEncoding("utf-8");
 
-		LoginDTO.res res = new LoginDTO.res();
+		LoginDTO res = new LoginDTO();
 		res.setIsFirst(isFirst);
 		res.setAccessToken(accessToken);
 		res.setRefreshToken(refreshToken);
 
-		ResponseMessage<LoginDTO.res> message = new ResponseMessage<>(ResponseCode.COM2000, res);
+		ResponseMessage<LoginDTO> message = new ResponseMessage<>(ResponseCode.COM2000, res);
 		String result = gson.toJson(message);
 		response.getWriter().write(result);
 	}

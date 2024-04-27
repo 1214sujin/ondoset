@@ -27,7 +27,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 		String path = request.getRequestURI();
 		log.info(path);
 
-		if (path.equals("/member/login") | path.equals("/member/jwt")) {
+		if (path.equals("/member/login") || path.equals("/member/jwt")) {
 			log.info("path = {}", path);
 			filterChain.doFilter(request, response);
 			return;

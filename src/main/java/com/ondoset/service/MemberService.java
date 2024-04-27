@@ -1,24 +1,27 @@
 package com.ondoset.service;
 
-import com.ondoset.controller.Advice.CustomException;
-import com.ondoset.controller.Advice.ResponseCode;
+import com.ondoset.controller.advice.CustomException;
+import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.domain.Member;
 import com.ondoset.domain.OnBoarding;
-import com.ondoset.dto.Member.*;
+import com.ondoset.dto.member.*;
 import com.ondoset.repository.MemberRepository;
 import com.ondoset.repository.OnBoardingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -27,7 +30,7 @@ import java.nio.file.Paths;
 public class MemberService {
 
 	private final MemberRepository memberRepository;
-	private final BCryptPasswordEncoder passwordEncoder;
+	private final PasswordEncoder passwordEncoder;
 	private final OnBoardingRepository onBoardingRepository;
 	@Value("${com.ondoset.resources.path}")
 	private String resourcesPath;
@@ -135,22 +138,31 @@ public class MemberService {
 	public void postProfilePic(ProfilePicDTO req) {
 
 		MultipartFile pic = req.getImage();
+		log.info("pic = {}", pic);
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
-		if (pic.isEmpty()) throw new CustomException(ResponseCode.COM4000, "파일이 비어 있습니다.");
+		// 기존에 존재하던 이미지 파일이 있다면 삭제
+		String existingImage = member.getProfileImage();
+		if (existingImage != null) new File(resourcesPath+existingImage).delete();
 
-		String filename = pic.getOriginalFilename();
-		filename = "/profile/"+member.getId().toString()+"_"+filename;
-		Path savePath = Paths.get(resourcesPath+filename);
+		if (pic == null || pic.isEmpty()) {
 
-		try {
-			pic.transferTo(savePath);
-			member.setProfileImage(filename);
-			memberRepository.save(member);
+			member.setProfileImage(null);
 		}
-		catch (Exception e) {
-			throw new CustomException(ResponseCode.COM4150);
+		else {
+
+			String filename = "/profile/"+ UUID.randomUUID() +"_"+pic.getOriginalFilename();
+			Path savePath = Paths.get(resourcesPath+filename);
+
+			try {
+				pic.transferTo(savePath);
+				member.setProfileImage(filename);
+			}
+			catch (Exception e) {
+				throw new CustomException(ResponseCode.COM4150);
+			}
 		}
+		memberRepository.save(member);
 	}
 
 	public void postNickname(NicknameDTO req) {
@@ -171,9 +183,13 @@ public class MemberService {
 
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
+		// 기존에 존재하던 이미지 파일이 있다면 삭제
+		String existingImage = member.getProfileImage();
+		if (existingImage != null) new File(resourcesPath+existingImage).delete();
+
 		try {
 			memberRepository.delete(member);
-		} catch (DataIntegrityViolationException e) {
+		} catch (InvalidDataAccessApiUsageException e) {
 			throw new CustomException(ResponseCode.COM4091);
 		}
 	}

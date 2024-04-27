@@ -1,12 +1,15 @@
 package com.ondoset.controller;
 
-import com.ondoset.controller.Advice.ResponseCode;
-import com.ondoset.controller.Advice.ResponseMessage;
-import com.ondoset.dto.Member.*;
+import com.ondoset.controller.advice.CustomException;
+import com.ondoset.controller.advice.ResponseCode;
+import com.ondoset.controller.advice.ResponseMessage;
+import com.ondoset.dto.member.*;
 import com.ondoset.service.MemberService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Log4j2
@@ -25,7 +28,9 @@ public class MemberController {
 	}
 
 	@GetMapping("/usable-id")
-	public ResponseEntity<ResponseMessage<UsableIdDTO.res>> getUsableId(UsableIdDTO.req req) {
+	public ResponseEntity<ResponseMessage<UsableIdDTO.res>> getUsableId(@Valid UsableIdDTO.req req, BindingResult bindingResult) {
+
+		if (bindingResult.hasErrors()) throw new CustomException(ResponseCode.COM4000);
 
 		UsableIdDTO.res res = memberService.getUsableId(req);
 
@@ -33,7 +38,9 @@ public class MemberController {
 	}
 
 	@GetMapping("/usable-nickname")
-	public ResponseEntity<ResponseMessage<UsableNicknameDTO.res>> getUsableNickname(UsableNicknameDTO.req req) {
+	public ResponseEntity<ResponseMessage<UsableNicknameDTO.res>> getUsableNickname(@Valid UsableNicknameDTO.req req, BindingResult bindingResult) {
+
+		if (bindingResult.hasErrors()) throw new CustomException(ResponseCode.COM4000);
 
 		UsableNicknameDTO.res res = memberService.getUsableNickname(req);
 
@@ -41,7 +48,7 @@ public class MemberController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<ResponseMessage<String>> postRegister(@RequestBody RegisterDTO req) {
+	public ResponseEntity<ResponseMessage<String>> postRegister(@Valid @RequestBody RegisterDTO req) {
 
 		memberService.postRegister(req);
 
@@ -49,7 +56,7 @@ public class MemberController {
 	}
 
 	@PostMapping("/on-boarding")
-	public ResponseEntity<ResponseMessage<String>> postOnBoarding(@RequestBody OnBoardingDTO req) {
+	public ResponseEntity<ResponseMessage<String>> postOnBoarding(@Valid @RequestBody OnBoardingDTO req) {
 
 		memberService.postOnBoarding(req);
 
@@ -65,7 +72,7 @@ public class MemberController {
 	}
 
 	@PostMapping("/nickname")
-	public ResponseEntity<ResponseMessage<String>> postNickname(@RequestBody NicknameDTO req) {
+	public ResponseEntity<ResponseMessage<String>> postNickname(@Valid @RequestBody NicknameDTO req) {
 
 		memberService.postNickname(req);
 

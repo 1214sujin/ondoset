@@ -17,4 +17,8 @@ public enum TempRate {
 	TElse("~4°C");
 
 	private final String name;
+
+	public static TempRate valueOfLower(String name) {
+		return TempRate.valueOf(name.toUpperCase());
+	}
 }

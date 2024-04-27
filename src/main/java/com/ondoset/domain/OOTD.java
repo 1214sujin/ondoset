@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @DynamicInsert
-public class OOTD extends BaseEntity{
+public class OOTD extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -60,4 +60,7 @@ public class OOTD extends BaseEntity{
 
 	@OneToMany(mappedBy = "ootd")
 	private List<Wearing> wearings = new ArrayList<>();
+
+	@OneToMany(mappedBy = "ootd")
+	private List<Like> likes = new ArrayList<>();
 }

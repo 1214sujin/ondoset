@@ -15,4 +15,8 @@ public enum Weather {
     SLEET("눈비");
 
     private final String name;
+
+    public static Weather valueOfLower(String name) {
+        return Weather.valueOf(name.toUpperCase());
+    }
 }

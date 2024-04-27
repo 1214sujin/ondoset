@@ -21,8 +21,8 @@ public class Coordi extends BaseEntity {
     private Long id;
 
     // 코디 날짜
-    @Temporal(TemporalType.DATE)
-    private Date date;
+    @Column(columnDefinition = "bigint")
+    private Long date;
 
     // 코디 만족도
     @Enumerated(EnumType.STRING)
