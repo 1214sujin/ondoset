@@ -48,7 +48,7 @@ public class OOTDService {
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
 		// 사용자의 ootd 10개 조회
-		List<Ootd> ootdList = ootdRepository.pageMyProfile(member);
+		List<OotdDTO> ootdList = ootdRepository.pageMyProfile(member);
 		Long lastPage;
 		if (ootdList.size() < 10) {
 			lastPage = -2L;
@@ -81,7 +81,7 @@ public class OOTDService {
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
 		// 사용자의 ootd 10개 조회
-		List<Ootd> ootdList = ootdRepository.pageMyProfile(member, req.getLastPage());
+		List<OotdDTO> ootdList = ootdRepository.pageMyProfile(member, req.getLastPage());
 		Long lastPage;
 		if (ootdList.size() < 10) {
 			lastPage = -2L;
@@ -107,7 +107,7 @@ public class OOTDService {
 		TempRate tempRate = TempRate.valueOfLower(req.getTempRate());
 		Long lastPage = req.getLastPage();
 
-		List<Ootd> ootdList;
+		List<OotdDTO> ootdList;
 		if (lastPage.equals(-1L)) {
 			ootdList = ootdRepository.pageWeather(member, weather, tempRate);
 		} else {
@@ -134,7 +134,7 @@ public class OOTDService {
 		// req 분해
 		Long lastPage = req.getLastPage();
 
-		List<Ootd> ootdList;
+		List<OotdDTO> ootdList;
 		if (lastPage.equals(-1L)) {
 			ootdList = ootdRepository.pageLike(member);
 		} else {
@@ -211,14 +211,15 @@ public class OOTDService {
 
 	public PastWDTO getWeatherPreview(WeatherPreviewDTO req) {
 
-		// 현재 사용자 조회
-		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
-
 		// req 분해
 		Double lat = req.getLat();
 		Double lon = req.getLon();
 		Long departTime = req.getDepartTime();
 		Long arrivalTime = req.getArrivalTime();
+
+		if (arrivalTime < departTime) {
+			throw new CustomException(ResponseCode.COM4000, "등록하려는 날짜가 잘못되었습니다.");
+		}
 
 		return kma.getPastW(lat, lon, departTime, arrivalTime);
 	}

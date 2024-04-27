@@ -4,7 +4,7 @@ import com.ondoset.domain.Enum.TempRate;
 import com.ondoset.domain.Enum.Weather;
 import com.ondoset.domain.Member;
 import com.ondoset.domain.OOTD;
-import com.ondoset.dto.ootd.Ootd;
+import com.ondoset.dto.ootd.OotdDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,27 +19,27 @@ public interface OOTDRepository extends JpaRepository<OOTD, Long> {
 
 	Boolean existsByIdAndMember(Long id, Member member);
 
-	@Query("select new com.ondoset.dto.ootd.Ootd(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o where o.member=:member and o.reportedCount<5 and o.isBlinded=false order by o.id desc limit 10")
-	List<Ootd> pageMyProfile(@Param("member") Member member);
+	List<OotdDTO> pageMyProfile(@Param("member") Member member);
 
-	@Query("select new com.ondoset.dto.ootd.Ootd(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o where o.member=:member and o.reportedCount<5 and o.isBlinded=false and o.id<:lastPage order by o.id desc limit 10")
-	List<Ootd> pageMyProfile(@Param("member") Member member, @Param("lastPage") Long lastPage);
+	List<OotdDTO> pageMyProfile(@Param("member") Member member, @Param("lastPage") Long lastPage);
 
-	@Query("select new com.ondoset.dto.ootd.Ootd(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o where o.member!=:member and o.reportedCount<5 and o.isBlinded=false and o.weather=:weather and o.tempRate=:tempRage order by o.id desc limit 10")
-	List<Ootd> pageWeather(@Param("member") Member member, @Param("weather") Weather weather, @Param("tempRage") TempRate tempRate);
+	List<OotdDTO> pageWeather(@Param("member") Member member, @Param("weather") Weather weather, @Param("tempRage") TempRate tempRate);
 
-	@Query("select new com.ondoset.dto.ootd.Ootd(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o where o.member!=:member and o.reportedCount<5 and o.isBlinded=false and o.weather=:weather and o.tempRate=:tempRage and o.id<:lastPage order by o.id desc limit 10")
-	List<Ootd> pageWeather(@Param("member") Member member, @Param("weather") Weather weather, @Param("tempRage") TempRate tempRate, @Param("lastPage") Long lastPage);
+	List<OotdDTO> pageWeather(@Param("member") Member member, @Param("weather") Weather weather, @Param("tempRage") TempRate tempRate, @Param("lastPage") Long lastPage);
 
-	@Query("select new com.ondoset.dto.ootd.Ootd(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o join o.likes l where l.member=:member and o.reportedCount<5 and o.isBlinded=false order by o.id desc limit 10")
-	List<Ootd> pageLike(@Param("member") Member member);
+	List<OotdDTO> pageLike(@Param("member") Member member);
 
-	@Query("select new com.ondoset.dto.ootd.Ootd(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o join o.likes l where l.member=:member and o.reportedCount<5 and o.isBlinded=false and o.id<:lastPage order by o.id desc limit 10")
-	List<Ootd> pageLike(@Param("member") Member member, @Param("lastPage") Long lastPage);
+	List<OotdDTO> pageLike(@Param("member") Member member, @Param("lastPage") Long lastPage);
 }

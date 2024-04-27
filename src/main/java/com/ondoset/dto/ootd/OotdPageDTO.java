@@ -10,5 +10,5 @@ import java.util.List;
 public class OotdPageDTO {
 
 	private Long lastPage;
-	private List<Ootd> ootdList;
+	private List<OotdDTO> ootdList;
 }

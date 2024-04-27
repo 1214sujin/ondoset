@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -63,6 +64,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 		if (ex.getClass() == MethodArgumentNotValidException.class) {
 			return ResponseEntity.badRequest().body(new ResponseMessage<>(ResponseCode.COM4000, ""));
+		}
+		if (ex.getClass() == HttpRequestMethodNotSupportedException.class) {
+			return ResponseEntity.badRequest().body(new ResponseMessage<>(ResponseCode.COM4050, ResponseCode.COM4050.getMessage() + ((HttpRequestMethodNotSupportedException) ex).getMethod() , ""));
 		}
 		return ResponseEntity.status(500).body(new ResponseMessage<>(ResponseCode.COM5000, ""));
 	}

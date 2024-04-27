@@ -16,5 +16,5 @@ public class MyProfileDTO {
 	private Long likeCount;
 	private Long followingCount;
 	private Long lastPage;
-	private List<Ootd> ootdList;
+	private List<OotdDTO> ootdList;
 }
