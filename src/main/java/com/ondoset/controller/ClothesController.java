@@ -61,6 +61,14 @@ public class ClothesController {
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
 
+	@PatchMapping("/{clothesId}")
+	public ResponseEntity<ResponseMessage<RootDTO.res>> patchRoot(@PathVariable("clothesId") Long clothesId, @Valid RootDTO.patchReq req) {
+
+		RootDTO.res res = clothesService.patchRoot(clothesId, req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
 	@DeleteMapping("/{clothesId}")
 	public ResponseEntity<ResponseMessage<String>> deleteRoot(@PathVariable("clothesId") Long clothesId) {
 

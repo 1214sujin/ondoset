@@ -189,34 +189,57 @@ public class ClothesService {
 		clothes.setThickness(Thickness.valueOfLower(req.getThickness()));
 
 		// 이미지 처리
-		Boolean imageUpdated = req.getImageUpdated();
-		// imageUpdated가 true인 경우, req.image를 수정
-		if (imageUpdated) {
+		MultipartFile image = req.getImage();
 
-			MultipartFile image = req.getImage();
+		// 기존에 존재하던 이미지 파일은 삭제(확장자가 다를 수도 있으니 보내주는 파일명을 항상 그대로 사용)
+		String existingImage = clothes.getImageURL();
+		if (existingImage != null) new File(resourcesPath+existingImage).delete();
 
-			// 기존에 존재하던 이미지 파일은 삭제(확장자가 다를 수도 있으니 보내주는 파일명을 항상 그대로 사용)
-			String existingImage = clothes.getImageURL();
-			if (existingImage != null) new File(resourcesPath+existingImage).delete();
+		if (image == null || image.isEmpty()) {
 
-			if (image == null || image.isEmpty()) {
+			clothes.setImageURL(null);
+		}
+		else {
 
-				clothes.setImageURL(null);
+			String filename = "/clothes/" + UUID.randomUUID() + "_" + image.getOriginalFilename();
+			Path savePath = Paths.get(resourcesPath+filename);
+
+			try {
+				image.transferTo(savePath);
+				clothes.setImageURL(filename);
 			}
-			else {
-
-				String filename = "/clothes/" + UUID.randomUUID() + "_" + image.getOriginalFilename();
-				Path savePath = Paths.get(resourcesPath+filename);
-
-				try {
-					image.transferTo(savePath);
-					clothes.setImageURL(filename);
-				}
-				catch (Exception e) {
-					throw new CustomException(ResponseCode.COM4150);
-				}
+			catch (Exception e) {
+				throw new CustomException(ResponseCode.COM4150);
 			}
-		} // imageUpdated가 false인 경우, 넘어감
+		}
+
+		clothesRepository.save(clothes);
+
+		// 응답 정의
+		RootDTO.res res = new RootDTO.res();
+		res.setClothesId(clothes.getId());
+
+		return res;
+	}
+
+	public RootDTO.res patchRoot(Long clothesId, RootDTO.patchReq req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		if (!clothesRepository.existsByIdAndMember(clothesId, member)) {
+			throw new CustomException(ResponseCode.COM4010, "요청된 자원에 접근할 수 없는 계정입니다: " + member.getName());
+		}
+
+		// 요청된 옷 엔티티 획득
+		Clothes clothes = clothesRepository.findById(clothesId).get();
+		if (clothes.getIsDeleted()) throw new CustomException(ResponseCode.COM4091);
+
+		// clothes 엔티티 수정
+		clothes.setMember(member);
+		clothes.setTag(tagRepository.findById(req.getTagId()).get());
+		clothes.setName(req.getName());
+		clothes.setThickness(Thickness.valueOfLower(req.getThickness()));
 
 		clothesRepository.save(clothes);
 
