@@ -1,6 +1,5 @@
 package com.ondoset.controller;
 
-import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
 import com.ondoset.dto.member.*;
@@ -9,7 +8,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Log4j2
@@ -28,9 +26,7 @@ public class MemberController {
 	}
 
 	@GetMapping("/usable-id")
-	public ResponseEntity<ResponseMessage<UsableIdDTO.res>> getUsableId(@Valid UsableIdDTO.req req, BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) throw new CustomException(ResponseCode.COM4000);
+	public ResponseEntity<ResponseMessage<UsableIdDTO.res>> getUsableId(@Valid UsableIdDTO.req req) {
 
 		UsableIdDTO.res res = memberService.getUsableId(req);
 
@@ -38,9 +34,7 @@ public class MemberController {
 	}
 
 	@GetMapping("/usable-nickname")
-	public ResponseEntity<ResponseMessage<UsableNicknameDTO.res>> getUsableNickname(@Valid UsableNicknameDTO.req req, BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) throw new CustomException(ResponseCode.COM4000);
+	public ResponseEntity<ResponseMessage<UsableNicknameDTO.res>> getUsableNickname(@Valid UsableNicknameDTO.req req) {
 
 		UsableNicknameDTO.res res = memberService.getUsableNickname(req);
 

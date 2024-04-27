@@ -1,6 +1,5 @@
 package com.ondoset.controller;
 
-import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
 import com.ondoset.dto.coordi.*;
@@ -9,7 +8,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,9 +37,7 @@ public class CoordiController {
 	}
 
 	@GetMapping({"/", ""})
-	public ResponseEntity<ResponseMessage<List<GetRootDTO.res>>> getRoot(@Valid GetRootDTO.req req, BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) throw new CustomException(ResponseCode.COM4000);
+	public ResponseEntity<ResponseMessage<List<GetRootDTO.res>>> getRoot(@Valid GetRootDTO.req req) {
 
 		List<GetRootDTO.res> res = coordiService.getRoot(req);
 
