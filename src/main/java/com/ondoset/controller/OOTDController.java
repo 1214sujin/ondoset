@@ -98,4 +98,28 @@ public class OOTDController {
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "삭제 성공"));
 	}
+
+	@GetMapping("/profile")
+	public ResponseEntity<ResponseMessage<ProfileDTO.res>> getProfile(@Valid ProfileDTO.req req) {
+
+		ProfileDTO.res res = ootdService.getProfile(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@PostMapping("/follow")
+	public ResponseEntity<ResponseMessage<FollowDTO>> postFollow(@Valid @RequestBody FollowDTO req) {
+
+		FollowDTO res = ootdService.postFollow(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@PutMapping("/follow/{memberId}")
+	public ResponseEntity<ResponseMessage<FollowDTO>> putFollow(@PathVariable("memberId") Long memberId) {
+
+		FollowDTO res = ootdService.putFollow(memberId);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
 }

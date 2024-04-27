@@ -391,4 +391,76 @@ public class OOTDService {
 
 		ootdRepository.delete(ootd);
 	}
+
+	public ProfileDTO.res getProfile(ProfileDTO.req req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 프로필이 요청된 사용자가 현재 사용자와 동일한지 확인
+		Member viewedMember = memberRepository.findById(req.getMemberId()).get();
+
+		if (viewedMember.equals(member)) {
+			throw new CustomException(ResponseCode.COM4000, "현재 사용자의 프로필을 해당 경로로 조회할 수 없습니다.");
+		}
+
+		// 사용자의 ootd 10개 조회
+		Long reqLastPage = req.getLastPage();
+
+		List<OotdDTO> ootdList;
+		if (reqLastPage == -1) {
+			ootdList = ootdRepository.pageProfile(viewedMember);
+		} else {
+			ootdList = ootdRepository.pageProfile(viewedMember, reqLastPage);
+		}
+
+		Long lastPage;
+		if (ootdList.size() < 10) {
+			lastPage = -2L;
+		} else {
+			lastPage = ootdList.get(9).getOotdId();
+		}
+
+		// 응답 정의
+		ProfileDTO.res res = new ProfileDTO.res();
+		res.setLastPage(lastPage);
+		res.setOotdList(ootdList);
+
+		return res;
+	}
+
+	public FollowDTO postFollow(FollowDTO req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 팔로잉이 요청된 사용자
+		Member followedMember = memberRepository.findById(req.getMemberId()).get();
+
+		Following following = new Following();
+		following.setFollower(member);
+		following.setFollowed(followedMember);
+
+		followingRepository.save(following);
+
+		return req;
+	}
+
+	public FollowDTO putFollow(Long memberId) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 팔로잉 취소가 요청된 사용자
+		Member followedMember = memberRepository.findById(memberId).get();
+
+		Following following = followingRepository.findByFollowerAndFollowed(member, followedMember);
+
+		followingRepository.delete(following);
+
+		FollowDTO res = new FollowDTO();
+		res.setMemberId(memberId);
+
+		return res;
+	}
 }
