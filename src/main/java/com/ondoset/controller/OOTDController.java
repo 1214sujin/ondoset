@@ -122,4 +122,12 @@ public class OOTDController {
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
+
+	@GetMapping({"/", ""})
+	public ResponseEntity<ResponseMessage<GetRootDTO.res>> getRoot(@Valid GetRootDTO.req req) {
+
+		GetRootDTO.res res = ootdService.getRoot(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
 }

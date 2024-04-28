@@ -437,6 +437,11 @@ public class OOTDService {
 		// 팔로잉이 요청된 사용자
 		Member followedMember = memberRepository.findById(req.getMemberId()).get();
 
+		// 이미 팔로잉된 사용자면 오류 반환
+		if (followingRepository.existsByFollowerAndFollowed(member, followedMember)) {
+			throw new CustomException(ResponseCode.COM4000);
+		}
+
 		Following following = new Following();
 		following.setFollower(member);
 		following.setFollowed(followedMember);
@@ -460,6 +465,40 @@ public class OOTDService {
 
 		FollowDTO res = new FollowDTO();
 		res.setMemberId(memberId);
+
+		return res;
+	}
+
+	public GetRootDTO.res getRoot(GetRootDTO.req req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// req 분해
+		Long ootdId = req.getOotdId();
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+		Member viewedMember = ootd.getMember();
+
+		// 아이디를 바탕으로 멤버 조회 및 ootd 개수 카운트, 팔로잉 여부 확인
+		Long ootdCount = ootdRepository.countByMember(viewedMember);
+		Boolean isFollowing = followingRepository.existsByFollowerAndFollowed(member, viewedMember);
+
+		// 입은 옷 정보
+		List<String> wearingList = new ArrayList<>();
+		for (Wearing wearing : ootd.getWearings()) {
+
+			wearingList.add(wearing.getName());
+		}
+
+		// 게시물 좋아요 여부 확인
+		Boolean isLike = likeRepository.existsByMemberAndOotd(member, ootd);
+
+		// 응답 생성
+		GetRootDTO.res res = new GetRootDTO.res();
+		res.setProfileShort(new ProfileShort(viewedMember.getId(), viewedMember.getNickname(), viewedMember.getProfileImage(), isFollowing, ootdCount));
+		res.setWeather(ootd.getWeather());
+		res.setWearing(wearingList);
+		res.setIsLike(isLike);
 
 		return res;
 	}
