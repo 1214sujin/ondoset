@@ -2,8 +2,7 @@ package com.ondoset.service;
 import com.ondoset.common.Kma;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
-import com.ondoset.domain.OOTD;
-import com.ondoset.domain.Wearing;
+import com.ondoset.domain.*;
 import com.ondoset.dto.kma.PastWDTO;
 import com.ondoset.repository.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,8 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.ondoset.domain.Enum.TempRate;
 import com.ondoset.domain.Enum.Weather;
-import com.ondoset.domain.Following;
-import com.ondoset.domain.Member;
 import com.ondoset.dto.ootd.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -38,6 +35,7 @@ public class OOTDService {
 	private final WearingRepository wearingRepository;
 	private final LikeRepository likeRepository;
 	private final FollowingRepository followingRepository;
+	private final ReportRepository reportRepository;
 	private final Kma kma;
 	@Value("${com.ondoset.resources.path}")
 	private String resourcesPath;
@@ -439,7 +437,7 @@ public class OOTDService {
 
 		// 이미 팔로잉된 사용자면 오류 반환
 		if (followingRepository.existsByFollowerAndFollowed(member, followedMember)) {
-			throw new CustomException(ResponseCode.COM4000);
+			throw new CustomException(ResponseCode.COM4090);
 		}
 
 		Following following = new Following();
@@ -501,5 +499,27 @@ public class OOTDService {
 		res.setIsLike(isLike);
 
 		return res;
+	}
+
+	public void postReport(ReportDTO req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// req 분해
+		Long ootdId = req.getOotdId();
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		// 이미 신고한 적이 있다면 오류 반환
+		if (reportRepository.existsByReporterAndOotd(member, ootd)) {
+			throw new CustomException(ResponseCode.COM4090);
+		}
+
+		Report report = new Report();
+		report.setOotd(ootd);
+		report.setReporter(member);
+		report.setReason(req.getReason());
+
+		reportRepository.save(report);
 	}
 }

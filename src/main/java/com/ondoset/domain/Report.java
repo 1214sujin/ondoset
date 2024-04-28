@@ -26,6 +26,9 @@ public class Report extends BaseEntity{
 	@JoinColumn(name = "reporter")
 	private Member reporter;
 
+	// 신고 이유
+	private String reason;
+
 	// 처리 여부
 	private Boolean isProcessed;
 }
