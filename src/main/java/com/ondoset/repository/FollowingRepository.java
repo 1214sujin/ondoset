@@ -16,6 +16,8 @@ public interface FollowingRepository extends JpaRepository<Following, Long> {
 
 	Following findByFollowerAndFollowed(Member follower, Member followed);
 
+	Boolean existsByFollowerAndFollowed(Member follower, Member followed);
+
 	@Query("select f from Following f where f.follower=:member order by f.id desc limit 24")
 	List<Following> pageFollowing(@Param("member") Member member);
 
