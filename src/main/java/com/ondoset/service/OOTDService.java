@@ -522,4 +522,47 @@ public class OOTDService {
 
 		reportRepository.save(report);
 	}
+
+	public LikeDTO postList(LikeDTO req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// req 분해
+		Long ootdId = req.getOotdId();
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		// 이미 좋아요한 게시물인지 확인
+		if (likeRepository.existsByMemberAndOotd(member, ootd)) {
+			throw new CustomException(ResponseCode.COM4090);
+		}
+
+		Like like = new Like();
+		like.setMember(member);
+		like.setOotd(ootd);
+
+		likeRepository.save(like);
+
+		return req;
+	}
+
+	public LikeDTO putList(Long ootdId) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 요청된 ootd
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		Like like = likeRepository.findByMemberAndOotd(member, ootd);
+		if (like == null) {
+			throw new CustomException(ResponseCode.COM4091);
+		}
+		likeRepository.delete(like);
+
+		LikeDTO res = new LikeDTO();
+		res.setOotdId(ootdId);
+
+		return res;
+	}
 }
