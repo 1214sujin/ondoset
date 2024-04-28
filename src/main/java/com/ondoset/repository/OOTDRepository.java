@@ -20,11 +20,11 @@ public interface OOTDRepository extends JpaRepository<OOTD, Long> {
 	Boolean existsByIdAndMember(Long id, Member member);
 
 	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
-			"from OOTD o where o.member=:member and o.reportedCount<5 and o.isBlinded=false order by o.id desc limit 10")
+			"from OOTD o where o.member=:member order by o.id desc limit 10")
 	List<OotdDTO> pageMyProfile(@Param("member") Member member);
 
 	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
-			"from OOTD o where o.member=:member and o.reportedCount<5 and o.isBlinded=false and o.id<:lastPage order by o.id desc limit 10")
+			"from OOTD o where o.member=:member and o.id<:lastPage order by o.id desc limit 10")
 	List<OotdDTO> pageMyProfile(@Param("member") Member member, @Param("lastPage") Long lastPage);
 
 	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
@@ -42,4 +42,12 @@ public interface OOTDRepository extends JpaRepository<OOTD, Long> {
 	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o join o.likes l where l.member=:member and o.reportedCount<5 and o.isBlinded=false and o.id<:lastPage order by o.id desc limit 10")
 	List<OotdDTO> pageLike(@Param("member") Member member, @Param("lastPage") Long lastPage);
+
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+			"from OOTD o where o.member=:member and o.reportedCount<5 and o.isBlinded=false order by o.id desc limit 10")
+	List<OotdDTO> pageProfile(@Param("member") Member member);
+
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+			"from OOTD o where o.member=:member and o.reportedCount<5 and o.isBlinded=false and o.id<:lastPage order by o.id desc limit 10")
+	List<OotdDTO> pageProfile(@Param("member") Member member, @Param("lastPage") Long lastPage);
 }

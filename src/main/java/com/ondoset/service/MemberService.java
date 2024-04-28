@@ -125,7 +125,7 @@ public class MemberService {
 		}
 		catch (DataIntegrityViolationException e) {
 
-			throw new CustomException(ResponseCode.DB5000, "허용되지 않는 범위의 답변이 포함되어 있습니다.");
+			throw new CustomException(ResponseCode.COM4000, "허용되지 않는 범위의 답변이 포함되어 있습니다.");
 		}
 		finally {
 

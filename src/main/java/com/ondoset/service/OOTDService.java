@@ -2,8 +2,7 @@ package com.ondoset.service;
 import com.ondoset.common.Kma;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
-import com.ondoset.domain.OOTD;
-import com.ondoset.domain.Wearing;
+import com.ondoset.domain.*;
 import com.ondoset.dto.kma.PastWDTO;
 import com.ondoset.repository.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,8 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.ondoset.domain.Enum.TempRate;
 import com.ondoset.domain.Enum.Weather;
-import com.ondoset.domain.Following;
-import com.ondoset.domain.Member;
 import com.ondoset.dto.ootd.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -38,6 +35,7 @@ public class OOTDService {
 	private final WearingRepository wearingRepository;
 	private final LikeRepository likeRepository;
 	private final FollowingRepository followingRepository;
+	private final ReportRepository reportRepository;
 	private final Kma kma;
 	@Value("${com.ondoset.resources.path}")
 	private String resourcesPath;
@@ -390,5 +388,181 @@ public class OOTDService {
 		}
 
 		ootdRepository.delete(ootd);
+	}
+
+	public ProfileDTO.res getProfile(ProfileDTO.req req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 프로필이 요청된 사용자가 현재 사용자와 동일한지 확인
+		Member viewedMember = memberRepository.findById(req.getMemberId()).get();
+
+		if (viewedMember.equals(member)) {
+			throw new CustomException(ResponseCode.COM4000, "현재 사용자의 프로필을 해당 경로로 조회할 수 없습니다.");
+		}
+
+		// 사용자의 ootd 10개 조회
+		Long reqLastPage = req.getLastPage();
+
+		List<OotdDTO> ootdList;
+		if (reqLastPage == -1) {
+			ootdList = ootdRepository.pageProfile(viewedMember);
+		} else {
+			ootdList = ootdRepository.pageProfile(viewedMember, reqLastPage);
+		}
+
+		Long lastPage;
+		if (ootdList.size() < 10) {
+			lastPage = -2L;
+		} else {
+			lastPage = ootdList.get(9).getOotdId();
+		}
+
+		// 응답 정의
+		ProfileDTO.res res = new ProfileDTO.res();
+		res.setLastPage(lastPage);
+		res.setOotdList(ootdList);
+
+		return res;
+	}
+
+	public FollowDTO postFollow(FollowDTO req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 팔로잉이 요청된 사용자
+		Member followedMember = memberRepository.findById(req.getMemberId()).get();
+
+		// 이미 팔로잉된 사용자면 오류 반환
+		if (followingRepository.existsByFollowerAndFollowed(member, followedMember)) {
+			throw new CustomException(ResponseCode.COM4090);
+		}
+
+		Following following = new Following();
+		following.setFollower(member);
+		following.setFollowed(followedMember);
+
+		followingRepository.save(following);
+
+		return req;
+	}
+
+	public FollowDTO putFollow(Long memberId) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 팔로잉 취소가 요청된 사용자
+		Member followedMember = memberRepository.findById(memberId).get();
+
+		Following following = followingRepository.findByFollowerAndFollowed(member, followedMember);
+
+		followingRepository.delete(following);
+
+		FollowDTO res = new FollowDTO();
+		res.setMemberId(memberId);
+
+		return res;
+	}
+
+	public GetRootDTO.res getRoot(GetRootDTO.req req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// req 분해
+		Long ootdId = req.getOotdId();
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+		Member viewedMember = ootd.getMember();
+
+		// 아이디를 바탕으로 멤버 조회 및 ootd 개수 카운트, 팔로잉 여부 확인
+		Long ootdCount = ootdRepository.countByMember(viewedMember);
+		Boolean isFollowing = followingRepository.existsByFollowerAndFollowed(member, viewedMember);
+
+		// 입은 옷 정보
+		List<String> wearingList = new ArrayList<>();
+		for (Wearing wearing : ootd.getWearings()) {
+
+			wearingList.add(wearing.getName());
+		}
+
+		// 게시물 좋아요 여부 확인
+		Boolean isLike = likeRepository.existsByMemberAndOotd(member, ootd);
+
+		// 응답 생성
+		GetRootDTO.res res = new GetRootDTO.res();
+		res.setProfileShort(new ProfileShort(viewedMember.getId(), viewedMember.getNickname(), viewedMember.getProfileImage(), isFollowing, ootdCount));
+		res.setWeather(ootd.getWeather());
+		res.setWearing(wearingList);
+		res.setIsLike(isLike);
+
+		return res;
+	}
+
+	public void postReport(ReportDTO req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// req 분해
+		Long ootdId = req.getOotdId();
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		// 이미 신고한 적이 있다면 오류 반환
+		if (reportRepository.existsByReporterAndOotd(member, ootd)) {
+			throw new CustomException(ResponseCode.COM4090);
+		}
+
+		Report report = new Report();
+		report.setOotd(ootd);
+		report.setReporter(member);
+		report.setReason(req.getReason());
+
+		reportRepository.save(report);
+	}
+
+	public LikeDTO postList(LikeDTO req) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// req 분해
+		Long ootdId = req.getOotdId();
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		// 이미 좋아요한 게시물인지 확인
+		if (likeRepository.existsByMemberAndOotd(member, ootd)) {
+			throw new CustomException(ResponseCode.COM4090);
+		}
+
+		Like like = new Like();
+		like.setMember(member);
+		like.setOotd(ootd);
+
+		likeRepository.save(like);
+
+		return req;
+	}
+
+	public LikeDTO putList(Long ootdId) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 요청된 ootd
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		Like like = likeRepository.findByMemberAndOotd(member, ootd);
+		if (like == null) {
+			throw new CustomException(ResponseCode.COM4091);
+		}
+		likeRepository.delete(like);
+
+		LikeDTO res = new LikeDTO();
+		res.setOotdId(ootdId);
+
+		return res;
 	}
 }

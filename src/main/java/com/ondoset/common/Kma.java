@@ -62,7 +62,7 @@ public class Kma {
 			result = JsonParser.parseString(response).getAsJsonObject();
 		}
 		catch (IOException e) {
-			throw new CustomException(ResponseCode.COM4000, "오류가 발생한 요청 API: "+reqUrl);
+			throw new CustomException(ResponseCode.COM5000, "오류가 발생한 요청 API: "+reqUrl);
 		}
 
 		String kmaErrorCode = result.getAsJsonObject("response").getAsJsonObject("header").get("resultCode").toString().replace("\"", "");
@@ -118,7 +118,7 @@ public class Kma {
 			return stn;
 		}
 		catch (IOException e) {
-			throw new CustomException(ResponseCode.COM4000, "오류가 발생한 요청 API: "+reqUrl);
+			throw new CustomException(ResponseCode.COM5000, "오류가 발생한 요청 API: "+reqUrl);
 		}
 	}
 
@@ -226,7 +226,7 @@ public class Kma {
 			return result;
 		}
 		catch (IOException e) {
-			throw new CustomException(ResponseCode.COM4000, "오류가 발생한 요청 API: "+reqUrl);
+			throw new CustomException(ResponseCode.COM5000, "오류가 발생한 요청 API: "+reqUrl);
 		}
 	}
 
@@ -347,7 +347,7 @@ public class Kma {
 			}
 		}
 		if (tmp == null || pty == null || wsd == null || reh == null) throw new CustomException(ResponseCode.COM5000,
-				String.format("현재 날씨 정보에 오류가 있습니다: tmp: %f\tpty: %d\twsd: %f\treh: %d", tmp, pty, wsd, reh));
+				"현재 날씨 정보에 빈 정보가 포함되어 있습니다.");
 
 		// 응답 생성
 		Weather weather = switch (pty) {

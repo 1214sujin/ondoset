@@ -98,4 +98,60 @@ public class OOTDController {
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "삭제 성공"));
 	}
+
+	@GetMapping("/profile")
+	public ResponseEntity<ResponseMessage<ProfileDTO.res>> getProfile(@Valid ProfileDTO.req req) {
+
+		ProfileDTO.res res = ootdService.getProfile(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@PostMapping("/follow")
+	public ResponseEntity<ResponseMessage<FollowDTO>> postFollow(@Valid @RequestBody FollowDTO req) {
+
+		FollowDTO res = ootdService.postFollow(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@PutMapping("/follow/{memberId}")
+	public ResponseEntity<ResponseMessage<FollowDTO>> putFollow(@PathVariable("memberId") Long memberId) {
+
+		FollowDTO res = ootdService.putFollow(memberId);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping({"/", ""})
+	public ResponseEntity<ResponseMessage<GetRootDTO.res>> getRoot(@Valid GetRootDTO.req req) {
+
+		GetRootDTO.res res = ootdService.getRoot(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@PostMapping("/report")
+	public ResponseEntity<ResponseMessage<String>> postReport(@Valid @RequestBody ReportDTO req) {
+
+		ootdService.postReport(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "신고 성공"));
+	}
+
+	@PostMapping("/like")
+	public ResponseEntity<ResponseMessage<LikeDTO>> postLike(@Valid @RequestBody LikeDTO req) {
+
+		LikeDTO res = ootdService.postList(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@PutMapping("/like/{ootdId}")
+	public ResponseEntity<ResponseMessage<LikeDTO>> putLike(@PathVariable("ootdId") Long ootdId) {
+
+		LikeDTO res = ootdService.putList(ootdId);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
 }
