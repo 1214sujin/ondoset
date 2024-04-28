@@ -55,7 +55,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	private ResponseEntity<ResponseMessage<String>> handleExceptionInternal (ResponseCode responseCode, String message) {
 		log.error(responseCode.getMessage() + message);
-		return ResponseEntity.status(responseCode.getStatus()).body(new ResponseMessage<>(responseCode, responseCode.getMessage(), ""));
+		return ResponseEntity.status(responseCode.getStatus()).body(new ResponseMessage<>(responseCode, responseCode.getMessage() + message, ""));
 	}
 
 	@Override

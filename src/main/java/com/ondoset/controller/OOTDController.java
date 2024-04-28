@@ -130,4 +130,12 @@ public class OOTDController {
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
+
+	@PostMapping("/report")
+	public ResponseEntity<ResponseMessage<String>> postReport(@Valid @RequestBody ReportDTO req) {
+
+		ootdService.postReport(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "신고 성공"));
+	}
 }
