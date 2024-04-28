@@ -5,6 +5,7 @@ import com.ondoset.controller.advice.ResponseMessage;
 import com.ondoset.dto.admin.blacklist.GetRootDTO;
 import com.ondoset.dto.admin.blacklist.PutRootDTO;
 import com.ondoset.dto.admin.blacklist.ReporterDTO;
+import com.ondoset.dto.admin.blacklist.ReporterListDTO;
 import com.ondoset.service.AdminBlacklistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,14 @@ public class AdminBlacklistController {
 	public ResponseEntity<ResponseMessage<List<ReporterDTO>>> getReporter() {
 
 		List<ReporterDTO> res = adminBlacklistService.getReporter();
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping("/reporter-list")
+	public ResponseEntity<ResponseMessage<ReporterListDTO.res>> getReporterList(@Valid ReporterListDTO.req req) {
+
+		ReporterListDTO.res res = adminBlacklistService.getReporterList(req);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
