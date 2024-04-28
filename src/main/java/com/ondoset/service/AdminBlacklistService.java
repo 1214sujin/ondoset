@@ -49,7 +49,7 @@ public class AdminBlacklistService {
 		Member member = memberRepository.findById(req.getMemberId()).get();
 		Long reqLastPage = req.getLastPage();
 
-		List<ReportingOotdDTO> reportingOotdList;
+		List<ReportedOotdDTO> reportingOotdList;
 		if (reqLastPage == -1) {
 			reportingOotdList = reportRepository.findReportingOotdList(member);
 		} else {
@@ -57,7 +57,7 @@ public class AdminBlacklistService {
 		}
 
 		// wearing 정보 전달
-		for (ReportingOotdDTO reportingOotd : reportingOotdList) {
+		for (ReportedOotdDTO reportingOotd : reportingOotdList) {
 
 			OOTD ootd = ootdRepository.findById(reportingOotd.getOotdId()).get();
 
@@ -80,6 +80,53 @@ public class AdminBlacklistService {
 		ReporterListDTO.res res = new ReporterListDTO.res();
 		res.setLastPage(lastPage);
 		res.setOotdList(reportingOotdList);
+
+		return res;
+	}
+
+	public List<ReporterDTO> getReported() {
+
+		// report 테이블에 한 번 이상 등록된 ootd를 작성한 사용자를 조회
+		return reportRepository.findReportedList();
+	}
+
+	public ReporterListDTO.res getReportedList(ReporterListDTO.req req) {
+
+		// req 분해
+		Member member = memberRepository.findById(req.getMemberId()).get();
+		Long reqLastPage = req.getLastPage();
+
+		List<ReportedOotdDTO> reportedOotdList;
+		if (reqLastPage == -1) {
+			reportedOotdList = reportRepository.findReportedOotdList(member);
+		} else {
+			reportedOotdList = reportRepository.findReportedOotdList(member, reqLastPage);
+		}
+
+		// wearing 정보 전달
+		for (ReportedOotdDTO reportedOotd : reportedOotdList) {
+
+			OOTD ootd = ootdRepository.findById(reportedOotd.getOotdId()).get();
+
+			// 입은 옷 정보
+			List<String> wearingList = new ArrayList<>();
+			for (Wearing wearing : ootd.getWearings()) {
+
+				wearingList.add(wearing.getName());
+			}
+			reportedOotd.setWearing(wearingList);
+		}
+
+		Long lastPage;
+		if (reportedOotdList.size() < 10) {
+			lastPage = -2L;
+		} else {
+			lastPage = reportedOotdList.get(9).getOotdId();
+		}
+
+		ReporterListDTO.res res = new ReporterListDTO.res();
+		res.setLastPage(lastPage);
+		res.setOotdList(reportedOotdList);
 
 		return res;
 	}

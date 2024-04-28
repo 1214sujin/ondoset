@@ -23,6 +23,6 @@ public class ReporterListDTO {
 	public static class res {
 
 		private Long lastPage;
-		private List<ReportingOotdDTO> ootdList;
+		private List<ReportedOotdDTO> ootdList;
 	}
 }

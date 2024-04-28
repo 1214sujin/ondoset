@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ReportingOotdDTO {
+public class ReportedOotdDTO {
 
 	private Long ootdId;
 	private Long date;
