@@ -138,4 +138,20 @@ public class OOTDController {
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "신고 성공"));
 	}
+
+	@PostMapping("/like")
+	public ResponseEntity<ResponseMessage<LikeDTO>> postLike(@Valid @RequestBody LikeDTO req) {
+
+		LikeDTO res = ootdService.postList(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@PutMapping("/like/{ootdId}")
+	public ResponseEntity<ResponseMessage<LikeDTO>> putLike(@PathVariable("ootdId") Long ootdId) {
+
+		LikeDTO res = ootdService.putList(ootdId);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
 }
