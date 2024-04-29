@@ -61,7 +61,7 @@ public class OOTDService {
 
 		// 응답 정의
 		MyProfileDTO res = new MyProfileDTO();
-		res.setMemberId(member.getName());
+		res.setUsername(member.getName());
 		res.setNickname(member.getNickname());
 		res.setProfileImage(member.getProfileImage());
 		res.setOotdCount(ootdCount);
