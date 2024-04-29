@@ -26,7 +26,12 @@ public class JWTUtil {
 
 	public String getName(String token) {
 
-		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("memberId", String.class);
+		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("username", String.class);
+	}
+
+	public Long getMemberId(String token) {
+
+		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("memberId", Long.class);
 	}
 
 	public Long getGapTime(String token) {
@@ -34,10 +39,11 @@ public class JWTUtil {
 		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration().getTime() - new Date().getTime();
 	}
 
-	public String createJwt(String name, Long days) {
+	public String createJwt(String name, Long memberId, Long days) {
 
 		return Jwts.builder()
-				.claim("memberId", name)
+				.claim("username", name)
+				.claim("memberId", memberId)
 				.setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + days*24*60*60*1000L))	// *60*1000L
 				.signWith(key, SignatureAlgorithm.HS256)

@@ -44,7 +44,7 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
 		Map<String, String> parameter = gson.fromJson(new InputStreamReader(request.getInputStream()), Map.class);
 
-		String name = parameter.get("memberId");
+		String name = parameter.get("username");
 		String password = parameter.get("password");
 
 		log.info("username = {}", name);
@@ -69,9 +69,10 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
 		String name = customUserDetails.getUsername();
 		Boolean isFirst = customUserDetails.getIsFirst();
+		Long memberId = customUserDetails.getMemberId();
 
-		String accessToken = jwtUtil.createJwt(name, 1L);
-		String refreshToken = jwtUtil.createJwt(name, 30L);
+		String accessToken = jwtUtil.createJwt(name, memberId, 1L);
+		String refreshToken = jwtUtil.createJwt(name, memberId, 30L);
 
 		// 응답 메시지 생성
 		response.setContentType("application/json");
@@ -79,6 +80,7 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
 		LoginDTO res = new LoginDTO();
 		res.setIsFirst(isFirst);
+		res.setMemberId(memberId);
 		res.setAccessToken(accessToken);
 		res.setRefreshToken(refreshToken);
 

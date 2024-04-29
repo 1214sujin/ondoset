@@ -11,7 +11,7 @@ public class UsableIdDTO {
 	public static class req {
 
 		@NotBlank
-		private String memberId;
+		private String username;
 	}
 
 	@Getter
