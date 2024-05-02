@@ -33,6 +33,8 @@ public class AdminReportService {
 			r.setReportedCount(o.getReportedCount());
 			r.setImageURL(o.getImageURL());
 			r.setReason(reportRepository.findReasonByOotd(o));
+
+			res.add(r);
 		}
 
 		return res;
