@@ -7,6 +7,7 @@ import com.ondoset.service.AdminReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,5 +26,13 @@ public class AdminReportController {
 		List<ReportDTO> res = adminReportService.getRoot();
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping("/count/{ootdId}")
+	public ResponseEntity<ResponseMessage<String>> putCount(@PathVariable("ootdId") Long ootdId) {
+
+		adminReportService.putCount(ootdId);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "초기화 성공"));
 	}
 }

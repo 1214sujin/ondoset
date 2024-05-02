@@ -519,6 +519,10 @@ public class OOTDService {
 			throw new CustomException(ResponseCode.COM4090);
 		}
 
+		ootd.setReportedCount(ootd.getReportedCount() + 1);
+
+		ootdRepository.save(ootd);
+
 		Report report = new Report();
 		report.setOotd(ootd);
 		report.setReporter(member);

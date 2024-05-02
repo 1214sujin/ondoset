@@ -39,4 +39,13 @@ public class AdminReportService {
 
 		return res;
 	}
+
+	public void putCount(Long ootdId) {
+
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		ootd.setReportedCount(0);
+
+		ootdRepository.save(ootd);
+	}
 }
