@@ -459,6 +459,10 @@ public class OOTDService {
 
 		Following following = followingRepository.findByFollowerAndFollowed(member, followedMember);
 
+		if (following == null) {
+			throw new CustomException(ResponseCode.COM4091);
+		}
+
 		followingRepository.delete(following);
 
 		FollowDTO res = new FollowDTO();
