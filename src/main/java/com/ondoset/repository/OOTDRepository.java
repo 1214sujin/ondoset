@@ -19,6 +19,11 @@ public interface OOTDRepository extends JpaRepository<OOTD, Long> {
 
 	Boolean existsByIdAndMember(Long id, Member member);
 
+	List<OOTD> findByReportedCountGreaterThan(Long reportedCount);
+	default List<OOTD> findByReportedCountGreaterThan() {
+		return this.findByReportedCountGreaterThan(0L);
+	}
+
 	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o where o.member=:member order by o.id desc limit 10")
 	List<OotdDTO> pageMyProfile(@Param("member") Member member);

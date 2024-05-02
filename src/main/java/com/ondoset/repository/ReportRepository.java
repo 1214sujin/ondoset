@@ -17,6 +17,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
 	Boolean existsByReporterAndOotd(Member member, OOTD ootd);
 
+	List<String> findReasonByOotd(OOTD ootd);
+
 	@Query("select new com.ondoset.dto.admin.blacklist.ReporterDTO(m.id, m.nickname, count(r)) " +
 			"from Report r join r.reporter m group by r.reporter")
 	List<ReporterDTO> findReporterList();
