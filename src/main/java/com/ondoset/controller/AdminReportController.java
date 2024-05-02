@@ -6,10 +6,7 @@ import com.ondoset.dto.admin.report.ReportDTO;
 import com.ondoset.service.AdminReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -28,11 +25,19 @@ public class AdminReportController {
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
 
-	@GetMapping("/count/{ootdId}")
+	@PutMapping("/count/{ootdId}")
 	public ResponseEntity<ResponseMessage<String>> putCount(@PathVariable("ootdId") Long ootdId) {
 
 		adminReportService.putCount(ootdId);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "초기화 성공"));
+	}
+
+	@PutMapping("/{ootdId}")
+	public ResponseEntity<ResponseMessage<String>> putRoot(@PathVariable("ootdId") Long ootdId) {
+
+		adminReportService.putRoot(ootdId);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "가리기 성공"));
 	}
 }

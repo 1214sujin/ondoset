@@ -48,4 +48,13 @@ public class AdminReportService {
 
 		ootdRepository.save(ootd);
 	}
+
+	public void putRoot(Long ootdId) {
+
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		ootd.setIsBlinded(true);
+
+		ootdRepository.save(ootd);
+	}
 }
