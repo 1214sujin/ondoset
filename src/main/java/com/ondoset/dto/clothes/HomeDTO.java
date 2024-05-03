@@ -28,7 +28,7 @@ public class HomeDTO {
 		private ForecastDTO forecast;
 		private List<PlanDTO> plan;
 		private List<RecordDTO> record;
-		private List<RecommendDTO> recommend;
+		private List<List<RecommendDTO>> recommend;
 		private List<OotdShortDTO> ootd;
 	}
 }

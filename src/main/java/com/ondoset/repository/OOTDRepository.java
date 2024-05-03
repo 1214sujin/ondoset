@@ -19,6 +19,8 @@ public interface OOTDRepository extends JpaRepository<OOTD, Long> {
 
 	Boolean existsByIdAndMember(Long id, Member member);
 
+	List<OOTD> findTop3ByMember_IdInOrderByIdDesc(List<Long> memberIdList);
+
 	@Query("select o from OOTD o where o.reportedCount>0 and o.isBlinded=false")
 	List<OOTD> findByReportedCountGreaterThan();
 

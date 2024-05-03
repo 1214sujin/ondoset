@@ -8,11 +8,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CoordiRepository extends JpaRepository<Coordi, Long> {
 
-	Coordi findByConsistings_Clothes_MemberAndDate(Member member, Long date);
+	Boolean existsByConsistings_Clothes_MemberAndDate(Member member, Long date);
+
+	Optional<Coordi> findByConsistings_Clothes_MemberAndDate(Member member, Long date);
 
 	Boolean existsByIdAndConsistings_Clothes_Member(Long coordiId, Member member);
 

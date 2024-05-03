@@ -52,7 +52,7 @@ public class CoordiService {
 
 		// 이미 사용자가 해당 날짜에 코디 데이터를 가지고 있다면 오류 반환
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
-		if (coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date) != null) {
+		if (coordiRepository.existsByConsistings_Clothes_MemberAndDate(member, date)) {
 			throw new CustomException(ResponseCode.COM4090);
 		}
 
@@ -110,7 +110,7 @@ public class CoordiService {
 
 		// 이미 사용자가 해당 날짜에 코디 데이터를 가지고 있다면 오류 반환
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
-		if (coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date) != null) {
+		if (coordiRepository.existsByConsistings_Clothes_MemberAndDate(member, date)) {
 			throw new CustomException(ResponseCode.COM4090);
 		}
 
