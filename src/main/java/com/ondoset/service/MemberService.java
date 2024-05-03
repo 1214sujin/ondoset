@@ -37,8 +37,7 @@ public class MemberService {
 
 	public UsableIdDTO.res getUsableId(UsableIdDTO.req req) {
 
-		String name = req.getMemberId();
-		log.info("memberId: {}", name);
+		String name = req.getUsername();
 		UsableIdDTO.res res = new UsableIdDTO.res();
 
 		Boolean isNameExist = memberRepository.existsByName(name);
@@ -59,7 +58,6 @@ public class MemberService {
 	public UsableNicknameDTO.res getUsableNickname(UsableNicknameDTO.req req) {
 
 		String nickname = req.getNickname();
-		log.info("nickname: {}", nickname);
 		UsableNicknameDTO.res res = new UsableNicknameDTO.res();
 
 		Boolean isNicknameExist = memberRepository.existsByNickname(nickname);
@@ -80,23 +78,23 @@ public class MemberService {
 
 	public void postRegister(RegisterDTO req) {
 
-		String name = req.getMemberId();
+		String name = req.getUsername();
 		String password = req.getPassword();
 		String nickname = req.getNickname();
 
 		Member data = new Member();
+		data.setName(name);
+		data.setPassword(passwordEncoder.encode(password));
+		data.setNickname(nickname);
+
 		try {
-			data.setName(name);
-			data.setPassword(passwordEncoder.encode(password));
-			data.setNickname(nickname);
+			memberRepository.save(data);
 		}
 		catch (DataIntegrityViolationException e) {
 			throw new CustomException(ResponseCode.COM4090);
 		}
 
-		memberRepository.save(data);
-
-		log.info("new member is registered. member id: {}", name);
+		log.info("new member is registered. username: {}", name);
 	}
 
 	public void postOnBoarding(OnBoardingDTO req) {
@@ -131,14 +129,13 @@ public class MemberService {
 
 			member.setOnBoarding(data);
 			memberRepository.save(member);
-			log.info("onBoarding data saved. member id: {}", memberId);
+			log.info("onBoarding data saved. username: {}", memberId);
 		}
 	}
 
 	public void postProfilePic(ProfilePicDTO req) {
 
 		MultipartFile pic = req.getImage();
-		log.info("pic = {}", pic);
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
 		// 기존에 존재하던 이미지 파일이 있다면 삭제

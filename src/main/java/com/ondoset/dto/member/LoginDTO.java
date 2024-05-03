@@ -8,6 +8,7 @@ import lombok.Setter;
 public class LoginDTO {
 
 	private Boolean isFirst;
+	private Long memberId;
 	private String accessToken;
 	private String refreshToken;
 }

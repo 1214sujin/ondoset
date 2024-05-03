@@ -27,6 +27,10 @@ public class CustomUserDetails implements UserDetails {
 		return member.getName();
 	}
 
+	public Long getMemberId() {
+		return member.getId();
+	}
+
 	public Boolean getIsFirst() {
 		return  member.getOnBoarding()==null;
 	}

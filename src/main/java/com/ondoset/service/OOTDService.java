@@ -61,7 +61,7 @@ public class OOTDService {
 
 		// 응답 정의
 		MyProfileDTO res = new MyProfileDTO();
-		res.setMemberId(member.getName());
+		res.setUsername(member.getName());
 		res.setNickname(member.getNickname());
 		res.setProfileImage(member.getProfileImage());
 		res.setOotdCount(ootdCount);
@@ -459,6 +459,10 @@ public class OOTDService {
 
 		Following following = followingRepository.findByFollowerAndFollowed(member, followedMember);
 
+		if (following == null) {
+			throw new CustomException(ResponseCode.COM4091);
+		}
+
 		followingRepository.delete(following);
 
 		FollowDTO res = new FollowDTO();
@@ -514,6 +518,10 @@ public class OOTDService {
 		if (reportRepository.existsByReporterAndOotd(member, ootd)) {
 			throw new CustomException(ResponseCode.COM4090);
 		}
+
+		ootd.setReportedCount(ootd.getReportedCount() + 1);
+
+		ootdRepository.save(ootd);
 
 		Report report = new Report();
 		report.setOotd(ootd);
