@@ -9,7 +9,6 @@ import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.domain.Enum.Weather;
 import com.ondoset.dto.clothes.FcstDTO;
 import com.ondoset.dto.kma.*;
-import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -27,7 +26,6 @@ import java.util.*;
 
 @Log4j2
 @Component
-@NoArgsConstructor
 public class Kma {
 
 	private final DateTimeFormatter kmaFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm").withZone(TimeZone.getDefault().toZoneId());

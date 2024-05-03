@@ -19,6 +19,17 @@ public class AdminMonitorController {
 
 	private final AdminMonitorService adminMonitorService;
 
+	@GetMapping("/ai")
+	public ResponseEntity<ResponseMessage<String>> getAi() {
+
+		try {
+			adminMonitorService.getAi();
+			return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "Normal"));
+		} catch (Exception e) {
+			return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "Error"));
+		}
+	}
+
 	@GetMapping("/db")
 	public ResponseEntity<ResponseMessage<String>> getDb() {
 

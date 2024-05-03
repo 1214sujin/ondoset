@@ -2,6 +2,7 @@ package com.ondoset.service;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.ondoset.common.Ai;
 import com.ondoset.common.Kma;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.dto.admin.monitor.ActiveUserDTO;
@@ -30,11 +31,16 @@ import java.util.TimeZone;
 @Service
 public class AdminMonitorService {
 
-	private final TagRepository tagRepository;
-	private final MemberRepository memberRepository;
+	private final Ai ai;
 	private final Kma kma;
 	@Value("${com.ondoset.data.service_key}")
 	private String serviceKey;
+	private final TagRepository tagRepository;
+	private final MemberRepository memberRepository;
+
+	public void getAi() throws Exception {
+		ai.getSimilarUser(1L);
+	}
 
 	public void getDb() throws Exception {
 
