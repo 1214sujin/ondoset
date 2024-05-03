@@ -72,20 +72,19 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 		StringBuilder requestLog = new StringBuilder();
 		ObjectMapper objectMapper = new ObjectMapper();
 
-		requestLog.append("\n\nrequest = ").append(request.getMethod()).append(" ").append(path).append("\n\n");
+		requestLog.append("\n\nrequest = ").append(request.getMethod()).append(" ").append(path).append("\n");
 		if (!requestWrapper.getParameterMap().isEmpty()) {
 			requestWrapper.getParameterMap().forEach((key, value) -> {
-				requestLog.append(key).append(" = ").append(Arrays.asList(value).get(0)).append("\n");
+				requestLog.append("\n").append(key).append(" = ").append(Arrays.asList(value).get(0));
 			});
 		}
 		if (requestWrapper.getContentAsByteArray().length != 0) {
 			JsonNode jsonNode = objectMapper.readTree(requestWrapper.getContentAsByteArray());
 			for (Iterator<String> it = jsonNode.fieldNames(); it.hasNext(); ) {
 				String key = it.next();
-				requestLog.append(key).append(" = ").append(jsonNode.get(key)).append("\n");
+				requestLog.append("\n").append(key).append(" = ").append(jsonNode.get(key));
 			}
-			requestLog.append("json = ").append(objectMapper.readTree(requestWrapper.getContentAsByteArray()));
 		}
-		log.info("\n{}", requestLog.append("\n").toString());
+		log.info("{}", requestLog.append("\n").toString());
 	}
 }
