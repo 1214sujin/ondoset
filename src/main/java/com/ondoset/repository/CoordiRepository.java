@@ -21,6 +21,6 @@ public interface CoordiRepository extends JpaRepository<Coordi, Long> {
 
 	@Query("select distinct cd.id " +
 			"from Coordi cd left join cd.consistings cs left join cs.clothes ct " +
-			"where ct.member=:member and cd.date between :date-86400*15 and :date+86400*15")
-	List<Long> findByMemberAnd30Dates(@Param("member") Member member, @Param("date") Long date);
+			"where ct.member=:member and function('date_format', from_unixtime(cd.date), '%Y%m')=function('date_format', concat(:year, :month, '01'), '%Y%m')")
+	List<Long> findByMemberAndMonth(@Param("member") Member member, @Param("year") int year, @Param("month") String month);
 }

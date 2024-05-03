@@ -16,7 +16,9 @@ public class GetRootDTO {
 	public static class req {
 
 		@NotNull
-		private Long date;
+		private Integer year;
+		@NotNull
+		private Integer month;
 	}
 
 	@Getter
@@ -24,7 +26,9 @@ public class GetRootDTO {
 	public static class res {
 		
 		private Long coordiId;
-		private Long date;
+		private Integer year;
+		private Integer month;
+		private Integer day;
 		private Satisfaction satisfaction;
 		private Long departTime;
 		private Long arrivalTime;

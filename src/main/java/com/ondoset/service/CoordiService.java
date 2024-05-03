@@ -27,6 +27,8 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -139,13 +141,13 @@ public class CoordiService {
 		return res;
 	}
 
-	public List<GetRootDTO.res> getRoot(GetRootDTO.req req) {
+	public List<GetRootDTO.res> getRoot(int year, int month) {
 
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
-		// 날짜 전후 15일의 coordi 아이디 획득
-		List<Long> coordiList = coordiRepository.findByMemberAnd30Dates(member, req.getDate());
+		// 날짜가 해당하는 달의 coordi 아이디 리스트 획득
+		List<Long> coordiList = coordiRepository.findByMemberAndMonth(member, year, String.format("%02d", month));
 
 		// 각 coordi를 돌면서 clothesList 획득
 		List<GetRootDTO.res> resList = new ArrayList<>();
@@ -155,7 +157,12 @@ public class CoordiService {
 
 			GetRootDTO.res res = new GetRootDTO.res();
 			res.setCoordiId(coordi.getId());
-			res.setDate(coordi.getDate());
+
+			LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(coordi.getDate()), ZoneId.of("Asia/Seoul"));
+			res.setYear(dateTime.getYear());
+			res.setMonth(dateTime.getMonthValue());
+			res.setDay(dateTime.getDayOfMonth());
+
 			res.setSatisfaction(coordi.getSatisfaction());
 			res.setDepartTime(coordi.getDepartTime());
 			res.setArrivalTime(coordi.getArrivalTime());

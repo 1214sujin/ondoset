@@ -39,7 +39,10 @@ public class CoordiController {
 	@GetMapping({"/", ""})
 	public ResponseEntity<ResponseMessage<List<GetRootDTO.res>>> getRoot(@Valid GetRootDTO.req req) {
 
-		List<GetRootDTO.res> res = coordiService.getRoot(req);
+		Integer year = req.getYear();
+		Integer month = req.getMonth();
+
+		List<GetRootDTO.res> res = coordiService.getRoot(year, month);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
