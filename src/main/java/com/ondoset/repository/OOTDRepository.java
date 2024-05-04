@@ -41,6 +41,14 @@ public interface OOTDRepository extends JpaRepository<OOTD, Long> {
 	List<OotdDTO> pageWeather(@Param("member") Member member, @Param("weather") Weather weather, @Param("tempRage") TempRate tempRate, @Param("lastPage") Long lastPage);
 
 	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+			"from OOTD o where o.member in (:memberList) and o.reportedCount<5 and o.isBlinded=false order by o.id desc limit 10")
+	List<OotdDTO> pageLatest(@Param("memberList") List<Member> memberList);
+
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+			"from OOTD o where o.member in (:memberList) and o.reportedCount<5 and o.isBlinded=false and o.id<:lastPage order by o.id desc limit 10")
+	List<OotdDTO> pageLatest(@Param("memberList") List<Member> memberList, @Param("lastPage") Long lastPage);
+
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o join o.likes l where l.member=:member and o.reportedCount<5 and o.isBlinded=false order by o.id desc limit 10")
 	List<OotdDTO> pageLike(@Param("member") Member member);
 
