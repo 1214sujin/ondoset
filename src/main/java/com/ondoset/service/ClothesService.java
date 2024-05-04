@@ -184,6 +184,37 @@ public class ClothesService {
 		return ootdPreview;
 	}
 
+	public SearchTagDTO.res getSearchTag(Thickness thickness, Long tagId) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 카테고리에 따라 분기 처리
+		Tag tag = tagRepository.findById(tagId).get();
+
+		SearchTagDTO.res res = new SearchTagDTO.res();
+
+		List<Clothes> clothesList;
+		if (Arrays.asList(Category.SHOE, Category.ACC).contains(tag.getCategory())) {
+
+			clothesList = clothesRepository.findByFullTag(member, tag);
+			res.setCoupangURL("https://www.coupang.com/np/search?q=" + tag.getName());
+		} else {
+
+			clothesList = clothesRepository.findByFullTag(member, thickness, tag);
+			String query = String.join(" ", thickness.getName(), tag.getName());
+			res.setCoupangURL("https://www.coupang.com/np/search?q=" + query);
+		}
+
+		res.setClothesShortList(new ArrayList<>());
+		for (Clothes c : clothesList) {
+
+			res.getClothesShortList().add(new ClothesShortDTO(c.getId(), c.getName(), c.getImageURL()));
+		}
+
+		return res;
+	}
+
 	public AllDTO.res getAll(AllDTO.req req) {
 
 		// 현재 사용자 조회

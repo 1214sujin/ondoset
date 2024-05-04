@@ -18,7 +18,7 @@ public class RootDTO {
 		private String name;
 		@NotNull
 		private Long tagId;
-		@Enum(enumClass = Thickness.class)
+		@Enum(enumClass = Thickness.class, nullable = true)
 		private String thickness;
 		private MultipartFile image;
 	}
@@ -31,7 +31,7 @@ public class RootDTO {
 		private String name;
 		@NotNull
 		private Long tagId;
-		@Enum(enumClass = Thickness.class)
+		@Enum(enumClass = Thickness.class, nullable = true)
 		private String thickness;
 		@NotNull
 		private MultipartFile image;
@@ -45,7 +45,7 @@ public class RootDTO {
 		private String name;
 		@NotNull
 		private Long tagId;
-		@Enum(enumClass = Thickness.class)
+		@Enum(enumClass = Thickness.class, nullable = true)
 		private String thickness;
 	}
 

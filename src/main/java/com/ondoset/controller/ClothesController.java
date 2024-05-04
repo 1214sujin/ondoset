@@ -2,10 +2,8 @@ package com.ondoset.controller;
 
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
-import com.ondoset.dto.clothes.AllDTO;
-import com.ondoset.dto.clothes.HomeDTO;
-import com.ondoset.dto.clothes.RootDTO;
-import com.ondoset.dto.clothes.TagDTO;
+import com.ondoset.domain.Enum.Thickness;
+import com.ondoset.dto.clothes.*;
 import com.ondoset.service.ClothesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +23,14 @@ public class ClothesController {
 	public ResponseEntity<ResponseMessage<HomeDTO.res>> getHome(@Valid @RequestBody HomeDTO.req req) {
 
 		HomeDTO.res res = clothesService.getHome(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping("")
+	public ResponseEntity<ResponseMessage<SearchTagDTO.res>> getSearchTag(@Valid SearchTagDTO.req req) {
+
+		SearchTagDTO.res res = clothesService.getSearchTag(Thickness.valueOfLower(req.getThickness()), req.getTagId());
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
