@@ -20,6 +20,14 @@ public class CoordiController {
 
 	private final CoordiService coordiService;
 
+	@PostMapping("/satisfaction-pred")
+	public ResponseEntity<ResponseMessage<SatisfactionPredDTO.res>> postSatisfactionPred(@Valid @RequestBody SatisfactionPredDTO.req req) {
+
+		SatisfactionPredDTO.res res = coordiService.postSatisfactionPred(req.getTagComb());
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
 	@PostMapping({"/", ""})
 	public ResponseEntity<ResponseMessage<DateDTO>> postRoot(@Valid @RequestBody PostRootDTO req) {
 

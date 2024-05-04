@@ -1,7 +1,7 @@
 package com.ondoset.common;
 
-import com.ondoset.domain.Clothes;
 import com.ondoset.domain.Enum.Satisfaction;
+import com.ondoset.dto.coordi.FullTagDTO;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +21,7 @@ public class Ai {
 		return Arrays.asList(rec1, rec2, rec3);
 	}
 
-	public Satisfaction getSatisfaction(List<Clothes> clothesList) {
+	public Satisfaction getSatisfaction(List<FullTagDTO> fullTagList) {
 		return Satisfaction.GOOD;
 	}
 

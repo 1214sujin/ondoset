@@ -1,5 +1,6 @@
 package com.ondoset.service;
 
+import com.ondoset.common.Ai;
 import com.ondoset.common.Kma;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
@@ -44,8 +45,19 @@ public class CoordiService {
 	private final ConsistingRepository consistingRepository;
 	private final ClothesRepository clothesRepository;
 	private final Kma kma;
+	private final Ai ai;
 	@Value("${com.ondoset.resources.path}")
 	private String resourcesPath;
+
+	public SatisfactionPredDTO.res postSatisfactionPred(List<FullTagDTO> tagComb) {
+
+		Satisfaction satisfaction = ai.getSatisfaction(tagComb);
+
+		SatisfactionPredDTO.res res = new SatisfactionPredDTO.res();
+		res.setPred(satisfaction);
+
+		return res;
+	}
 
 	public DateDTO postRoot(PostRootDTO req) {
 
