@@ -289,9 +289,21 @@ public class ClothesService {
 		// clothes 엔티티 생성
 		Clothes clothes = new Clothes();
 		clothes.setMember(member);
-		clothes.setTag(tagRepository.findById(req.getTagId()).get());
 		clothes.setName(req.getName());
-		clothes.setThickness(Thickness.valueOfLower(req.getThickness()));
+
+		Tag tag = tagRepository.findById(req.getTagId()).get();
+		clothes.setTag(tag);
+
+		// thickness를 필수로 받는 카테고리라면, thickness가 정상적으로 요청되었는지 검사
+		Thickness thickness = null;
+		if (!Arrays.asList(Category.SHOE, Category.ACC).contains(tag.getCategory())) {
+			if (req.getThickness() == null) {
+				throw new CustomException(ResponseCode.COM4000, "thickness가 필요한 카테고리입니다.");
+			} else {
+				thickness = Thickness.valueOfLower(req.getThickness());
+			}
+		}
+		clothes.setThickness(thickness);
 
 		// 이미지 처리
 		MultipartFile image = req.getImage();
@@ -336,9 +348,21 @@ public class ClothesService {
 
 		// clothes 엔티티 수정
 		clothes.setMember(member);
-		clothes.setTag(tagRepository.findById(req.getTagId()).get());
 		clothes.setName(req.getName());
-		clothes.setThickness(Thickness.valueOfLower(req.getThickness()));
+
+		Tag tag = tagRepository.findById(req.getTagId()).get();
+		clothes.setTag(tag);
+
+		// thickness를 필수로 받는 카테고리라면, thickness가 정상적으로 요청되었는지 검사
+		Thickness thickness = null;
+		if (!Arrays.asList(Category.SHOE, Category.ACC).contains(tag.getCategory())) {
+			if (req.getThickness() == null) {
+				throw new CustomException(ResponseCode.COM4000, "thickness가 필요한 카테고리입니다.");
+			} else {
+				thickness = Thickness.valueOfLower(req.getThickness());
+			}
+		}
+		clothes.setThickness(thickness);
 
 		// 이미지 처리
 		MultipartFile image = req.getImage();
@@ -389,9 +413,21 @@ public class ClothesService {
 
 		// clothes 엔티티 수정
 		clothes.setMember(member);
-		clothes.setTag(tagRepository.findById(req.getTagId()).get());
 		clothes.setName(req.getName());
-		clothes.setThickness(Thickness.valueOfLower(req.getThickness()));
+
+		Tag tag = tagRepository.findById(req.getTagId()).get();
+		clothes.setTag(tag);
+
+		// thickness를 필수로 받는 카테고리라면, thickness가 정상적으로 요청되었는지 검사
+		Thickness thickness = null;
+		if (!Arrays.asList(Category.SHOE, Category.ACC).contains(tag.getCategory())) {
+			if (req.getThickness() == null) {
+				throw new CustomException(ResponseCode.COM4000, "thickness가 필요한 카테고리입니다.");
+			} else {
+				thickness = Thickness.valueOfLower(req.getThickness());
+			}
+		}
+		clothes.setThickness(thickness);
 
 		clothesRepository.save(clothes);
 
