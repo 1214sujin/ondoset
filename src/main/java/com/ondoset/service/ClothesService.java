@@ -269,6 +269,21 @@ public class ClothesService {
 		return res;
 	}
 
+	public List<ClothesDTO> getSearch(Category category, String clothesName) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 전체 카테고리에 대한 조회인지 검사 및 분기 처리
+		List<ClothesDTO> res;
+		if (category == null) {
+			res = clothesRepository.findBySearch(member, clothesName);
+		} else {
+			res = clothesRepository.findBySearch(member, category, clothesName);
+		}
+		return res;
+	}
+
 	public TagDTO getTag() {
 
 		TagDTO res = new TagDTO();

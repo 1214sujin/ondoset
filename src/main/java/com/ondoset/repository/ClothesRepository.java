@@ -42,4 +42,14 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long> {
 			"from Clothes ct join ct.tag t where ct.member=:member and t.category=:category and ct.isDeleted=false and ct.id<:lastPage " +
 			"order by ct.id desc limit 18")
 	List<ClothesDTO> pageAllClothes(@Param("member") Member member, @Param("category") Category category, @Param("lastPage") Long lastPage);
+
+	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, ct.thickness) " +
+			"from Clothes ct join ct.tag t where ct.member=:member and t.category=:category and ct.isDeleted=false " +
+			"and ct.name like concat('%',:search,'%')")
+	List<ClothesDTO> findBySearch(@Param("member") Member member, @Param("category") Category category, @Param("search") String search);
+
+	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, ct.thickness) " +
+			"from Clothes ct join ct.tag t where ct.member=:member and ct.isDeleted=false " +
+			"and ct.name like concat('%',:search,'%')")
+	List<ClothesDTO> findBySearch(@Param("member") Member member, @Param("search") String search);
 }

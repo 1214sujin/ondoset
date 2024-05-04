@@ -1,7 +1,9 @@
 package com.ondoset.controller;
 
+import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
+import com.ondoset.domain.Enum.Category;
 import com.ondoset.domain.Enum.Thickness;
 import com.ondoset.dto.clothes.*;
 import com.ondoset.service.ClothesService;
@@ -10,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -39,6 +43,22 @@ public class ClothesController {
 	public ResponseEntity<ResponseMessage<AllDTO.res>> getAll(AllDTO.req req) {
 
 		AllDTO.res res = clothesService.getAll(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping("/search")
+	public ResponseEntity<ResponseMessage<List<ClothesDTO>>> getSearch(@Valid SearchNameDTO req) {
+
+		List<ClothesDTO> res;
+		try {
+			Category category = Category.valueOfLower(req.getCategory());
+			res = clothesService.getSearch(category, req.getClothesName());
+		} catch (NullPointerException e) {
+			res = clothesService.getSearch(null, req.getClothesName());
+		} catch (IllegalArgumentException e) {
+			throw new CustomException(ResponseCode.COM4000, "category: 널일 수 없습니다.");
+		}
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
