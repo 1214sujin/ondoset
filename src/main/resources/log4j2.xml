@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="INFO">
 
-    <!-- Appender, Layout 설정 -->
+    <!-- Appender 설정 -->
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d %5p %l - %m%n"/>
         </Console>
-        <JPA name="db" persistenceUnitName="loggingPersistenceUnit"
-             entityClassName="com.ondoset.jwt.JpaLogEntity" />
+        <JDBC name="db" tableName="log">
+            <ConnectionFactory class="com.ondoset.common.ConnectionFactory" method="getConnection" />
+            <Column name="date" isEventTimestamp="true"/>
+            <Column name="level" pattern="%p"/>
+            <Column name="location" pattern="%x"/>
+            <Column name="msg" pattern="%m" isClob="true"/>
+            <LevelRangeFilter maxLevel="info"/>
+        </JDBC>
     </Appenders>
 
     <!-- Logger 설정 -->
@@ -15,6 +21,11 @@
         <Root level="info">
             <AppenderRef ref="console"/>
         </Root>
+
+        <logger name="com.ondoset" level="debug" additivity="false" >
+            <AppenderRef ref="console" />
+            <AppenderRef ref="db"/>
+        </logger>
     </Loggers>
 
 </Configuration>

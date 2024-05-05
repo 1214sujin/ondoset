@@ -1,23 +1,19 @@
 package com.ondoset.jwt;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ondoset.domain.Member;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
 
 @Log4j2
 @AllArgsConstructor
@@ -26,13 +22,11 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 	private JWTUtil jwtUtil;
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+	protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
 
 		// 로그인 url 처리
 		String path = request.getRequestURI();
-
 		if (path.equals("/member/login") || path.equals("/member/jwt")) {
-			log.info("path = {}", path);
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -65,26 +59,6 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 		// 사용자 세션 생성
 		SecurityContextHolder.getContext().setAuthentication(authToken);
 
-		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
-		filterChain.doFilter(requestWrapper, response);
-
-		// 입력값 로깅
-		StringBuilder requestLog = new StringBuilder();
-		ObjectMapper objectMapper = new ObjectMapper();
-
-		requestLog.append("\n\nrequest = ").append(request.getMethod()).append(" ").append(path).append("\n");
-		if (!requestWrapper.getParameterMap().isEmpty()) {
-			requestWrapper.getParameterMap().forEach((key, value) -> {
-				requestLog.append("\n").append(key).append(" = ").append(Arrays.asList(value).get(0));
-			});
-		}
-		if (requestWrapper.getContentAsByteArray().length != 0) {
-			JsonNode jsonNode = objectMapper.readTree(requestWrapper.getContentAsByteArray());
-			for (Iterator<String> it = jsonNode.fieldNames(); it.hasNext(); ) {
-				String key = it.next();
-				requestLog.append("\n").append(key).append(" = ").append(jsonNode.get(key));
-			}
-		}
-		log.info("{}", requestLog.append("\n").toString());
+		filterChain.doFilter(request, response);
 	}
 }
