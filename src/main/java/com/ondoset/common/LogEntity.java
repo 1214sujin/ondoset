@@ -1,10 +1,12 @@
 package com.ondoset.common;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.sql.Clob;
 import java.util.Date;
 
+@Getter
 @Entity
 @Table(name="log")
 public class LogEntity {

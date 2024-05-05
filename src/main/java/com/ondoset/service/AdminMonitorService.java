@@ -1,12 +1,16 @@
 package com.ondoset.service;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ondoset.common.Ai;
 import com.ondoset.common.Kma;
+import com.ondoset.common.LogEntity;
 import com.ondoset.controller.advice.CustomException;
+import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.dto.admin.monitor.ActiveUserDTO;
-import com.ondoset.dto.kma.PastWDTO;
+import com.ondoset.dto.admin.monitor.LogDTO;
+import com.ondoset.repository.LogRepository;
 import com.ondoset.repository.MemberRepository;
 import com.ondoset.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +19,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.time.Instant;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -26,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
+@SuppressWarnings("ALL")
 @Log4j2
 @RequiredArgsConstructor
 @Service
@@ -36,6 +42,7 @@ public class AdminMonitorService {
 	@Value("${com.ondoset.data.service_key}")
 	private String serviceKey;
 	private final TagRepository tagRepository;
+	private final LogRepository logRepository;
 	private final MemberRepository memberRepository;
 
 	public void getAi() throws Exception {
@@ -70,6 +77,43 @@ public class AdminMonitorService {
 		String kmaErrorCode = result.getAsJsonObject("response").getAsJsonObject("header").get("resultCode").toString().replace("\"", "");
 		if (!kmaErrorCode.equals("00")) return "Maintenance";
 		return "Normal";
+	}
+
+	public List<LogDTO> getMain() {
+
+		// 최근 100개 오류 로그를 가져온다.
+		List<LogEntity> logEntityList = logRepository.findTop100ByLevelOrLevelOrderByIdDesc();
+
+		List<LogDTO> res = new ArrayList<>();
+		for (LogEntity l : logEntityList) {
+
+			LogDTO logDTO = new LogDTO();
+			logDTO.setDate(l.getDate().toString());
+			logDTO.setLevel(l.getLevel());
+
+			// Location stack의 가장 위 값만 전송
+			Gson gson = new Gson();
+			String location = l.getLocation();
+			List<String> locationList = gson.fromJson(location, List.class);
+			logDTO.setLocation(locationList.get(locationList.size()-1));
+
+			// clob 자료형을 string으로 변환
+			try {
+				StringBuilder message = new StringBuilder();
+				String brLine;
+				BufferedReader br = new BufferedReader(l.getMsg().getCharacterStream());
+				while ((brLine = br.readLine()) != null) {
+					message.append(brLine);
+				}
+				logDTO.setMsg(message.toString());
+			} catch (SQLException e) {
+				throw new CustomException(ResponseCode.DB5000);
+			} catch (IOException e) {
+				throw new CustomException(ResponseCode.COM5000);
+			}
+			res.add(logDTO);
+		}
+		return res;
 	}
 
 	public List<ActiveUserDTO> getActiveUser() {

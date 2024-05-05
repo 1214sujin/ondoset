@@ -13,7 +13,7 @@ public class MethodLogger {
 	@Around("execution(* com.ondoset.service..*(..)) || execution(* com.ondoset.common.Ai.*(..)) || execution(* com.ondoset.common.Kma.*(..))")
 	public Object execute(ProceedingJoinPoint joinPoint) throws Throwable {
 
-		ThreadContext.push(String.join(".", joinPoint.getSignature().getDeclaringType().getSimpleName(), joinPoint.getSignature().getName()));
+		ThreadContext.push(String.format("\"%s.%s\"", joinPoint.getSignature().getDeclaringType().getSimpleName(), joinPoint.getSignature().getName()));
 		System.out.println("joinPoint: " + joinPoint.getSignature().getDeclaringType().getSimpleName() + "." + joinPoint.getSignature().getName());
 
         Object result = joinPoint.proceed();

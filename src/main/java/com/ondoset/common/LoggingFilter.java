@@ -25,7 +25,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
 		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
-		ThreadContext.push(requestWrapper.getMethod() + " " + requestWrapper.getRequestURI());
+		ThreadContext.push(String.format("\"%s %s\"", requestWrapper.getMethod(), requestWrapper.getRequestURI()));
 
 		filterChain.doFilter(requestWrapper, response);
 
