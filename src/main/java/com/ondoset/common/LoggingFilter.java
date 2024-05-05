@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
-import org.jboss.logging.NDC;
+import org.apache.logging.log4j.ThreadContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -25,7 +25,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
 		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
-		NDC.push(requestWrapper.getMethod() + " " + requestWrapper.getRequestURI());
+		ThreadContext.push(requestWrapper.getMethod() + " " + requestWrapper.getRequestURI());
 
 		filterChain.doFilter(requestWrapper, response);
 
@@ -45,6 +45,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 			}
 		}
 		log.info("{}", requestLog.append("\n").toString());
-		NDC.clear();
+		ThreadContext.pop();	// 위에서 push한 NDC를 제거
+		ThreadContext.clearAll();
 	}
 }
