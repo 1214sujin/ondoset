@@ -118,6 +118,7 @@ public class ClothesService {
 					clothes.setImageURL(c.getImageURL());
 					clothes.setCategory(c.getTag().getCategory());
 					clothes.setTag(c.getTag().getName());
+					clothes.setTagId(c.getTag().getId());
 					clothes.setThickness(c.getThickness());
 
 					clothesList.add(clothes);

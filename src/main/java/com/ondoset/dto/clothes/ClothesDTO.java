@@ -18,5 +18,6 @@ public class ClothesDTO {
 	private String imageURL;
 	private Category category;
 	private String tag;
+	private Long tagId;
 	private Thickness thickness;
 }

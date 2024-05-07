@@ -206,6 +206,7 @@ public class CoordiService {
 				clothesDTO.setImageURL(clothes.getImageURL());
 				clothesDTO.setCategory(clothes.getTag().getCategory());
 				clothesDTO.setTag(clothes.getTag().getName());
+				clothesDTO.setTagId(clothes.getTag().getId());
 				clothesDTO.setThickness(clothes.getThickness());
 
 				clothesList.add(clothesDTO);
