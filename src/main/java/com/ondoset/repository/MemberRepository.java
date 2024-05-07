@@ -18,8 +18,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
 	Member findByName(String name);
 
-	@Query("select new com.ondoset.dto.admin.blacklist.GetRootDTO(m.id, m.nickname, m.banPeriod) " +
-			"from Member m where m.banPeriod>0")
+	@Query("select new com.ondoset.dto.admin.blacklist.GetRootDTO(m.id, m.nickname, m.banPeriod-current_date) " +
+			"from Member m where m.banPeriod-current_date>0")
 	List<GetRootDTO> findByBanPeriodGreaterThan();
 
 	@Query(nativeQuery = true, value =

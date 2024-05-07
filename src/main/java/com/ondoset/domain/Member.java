@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class Member extends BaseEntity {
 	private OnBoarding onBoarding;
 
 	// 정지 기간
-	private Integer banPeriod;
+	private LocalDate banPeriod;
 
 	@OneToMany(mappedBy = "follower")
 	private List<Following> followings = new ArrayList<>();

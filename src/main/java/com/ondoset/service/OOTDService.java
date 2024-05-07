@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -237,7 +238,12 @@ public class OOTDService {
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
-		return new BanPeriodDTO(member.getBanPeriod());
+		LocalDate banPeriod = member.getBanPeriod();
+
+		// 정지 종료 날짜를 오늘로부터의 일수로 변환
+		Integer res = banPeriod.compareTo(LocalDate.now());
+
+		return new BanPeriodDTO(res);
 	}
 
 	public PastWDTO getWeatherPreview(WeatherPreviewDTO req) {
