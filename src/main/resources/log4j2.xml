@@ -6,7 +6,7 @@
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d %5p %l - %m%n"/>
         </Console>
-        <JDBC name="db" tableName="log">
+        <JDBC name="dbInfo" tableName="log">
             <ConnectionFactory class="com.ondoset.common.ConnectionFactory" method="getConnection" />
             <Column name="date" isEventTimestamp="true"/>
             <Column name="level" pattern="%p"/>
@@ -14,17 +14,26 @@
             <Column name="msg" pattern="%m" isClob="true"/>
             <LevelRangeFilter maxLevel="info"/>
         </JDBC>
+        <JDBC name="dbError" tableName="log">
+            <ConnectionFactory class="com.ondoset.common.ConnectionFactory" method="getConnection" />
+            <Column name="date" isEventTimestamp="true"/>
+            <Column name="level" pattern="%p"/>
+            <Column name="location" pattern="%x"/>
+            <Column name="msg" pattern="%m" isClob="true"/>
+            <LevelRangeFilter maxLevel="error"/>
+        </JDBC>
     </Appenders>
 
     <!-- Logger 설정 -->
     <Loggers>
         <Root level="info">
             <AppenderRef ref="console"/>
+            <AppenderRef ref="dbError"/>
         </Root>
 
         <logger name="com.ondoset" level="debug" additivity="false" >
             <AppenderRef ref="console" />
-            <AppenderRef ref="db"/>
+            <AppenderRef ref="dbInfo"/>
         </logger>
     </Loggers>
 

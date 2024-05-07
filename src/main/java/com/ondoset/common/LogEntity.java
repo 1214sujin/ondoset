@@ -23,6 +23,7 @@ public class LogEntity {
 
 	private String location;
 
+	@Lob
 	@Column(columnDefinition = "text")
-	private Clob msg;
+	private String msg;
 }

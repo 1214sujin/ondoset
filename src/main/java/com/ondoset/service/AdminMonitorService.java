@@ -6,10 +6,9 @@ import com.google.gson.JsonParser;
 import com.ondoset.common.Ai;
 import com.ondoset.common.Kma;
 import com.ondoset.common.LogEntity;
-import com.ondoset.controller.advice.CustomException;
-import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.dto.admin.monitor.ActiveUserDTO;
 import com.ondoset.dto.admin.monitor.LogDTO;
+import com.ondoset.dto.admin.monitor.RecordingPathDTO;
 import com.ondoset.repository.LogRepository;
 import com.ondoset.repository.MemberRepository;
 import com.ondoset.repository.TagRepository;
@@ -19,15 +18,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.SQLException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -95,22 +94,13 @@ public class AdminMonitorService {
 			Gson gson = new Gson();
 			String location = l.getLocation();
 			List<String> locationList = gson.fromJson(location, List.class);
-			logDTO.setLocation(locationList.get(locationList.size()-1));
-
-			// clob 자료형을 string으로 변환
-			try {
-				StringBuilder message = new StringBuilder();
-				String brLine;
-				BufferedReader br = new BufferedReader(l.getMsg().getCharacterStream());
-				while ((brLine = br.readLine()) != null) {
-					message.append(brLine);
-				}
-				logDTO.setMsg(message.toString());
-			} catch (SQLException e) {
-				throw new CustomException(ResponseCode.DB5000);
-			} catch (IOException e) {
-				throw new CustomException(ResponseCode.COM5000);
+			if (location.equals("[]")) {
+				logDTO.setLocation("springframework");
+			} else {
+				logDTO.setLocation(locationList.get(locationList.size()-1));
 			}
+
+			logDTO.setMsg(l.getMsg());
 			res.add(logDTO);
 		}
 		return res;
