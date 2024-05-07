@@ -106,6 +106,20 @@ public class AdminMonitorService {
 		return res;
 	}
 
+	public RecordingPathDTO getRecordingPath() {
+
+		// 최근 5달의 log(info)의 plan/past/ai 값의 개수를 세어 반환
+		int MONTH_SECOND = 2629743;
+		Date date = Date.from(Instant.now().minusSeconds(MONTH_SECOND * 5));
+
+		RecordingPathDTO res = new RecordingPathDTO();
+		res.setDirectly(logRepository.countPlan(date));
+		res.setPast(logRepository.countPast(date));
+		res.setAi(logRepository.countAi(date));
+
+		return res;
+	}
+
 	public List<ActiveUserDTO> getActiveUser() {
 
 		DateTimeFormatter sqlFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(TimeZone.getDefault().toZoneId());

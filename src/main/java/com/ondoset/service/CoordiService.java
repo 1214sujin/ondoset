@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Log4j2
@@ -118,14 +119,25 @@ public class CoordiService {
 		return res;
 	}
 
+	public void logPlan(String addType) {
+
+		switch (addType) {
+			case "plan", "past", "ai" -> log.info(addType);
+			default -> throw new CustomException(ResponseCode.COM4000);
+		}
+	}
 	public DateDTO postPlan(PlanDTO req) {
 
 		Long date = req.getDate();
 
-		// 이미 사용자가 해당 날짜에 코디 데이터를 가지고 있다면 오류 반환
+		// 이미 코디 계획이 있는 날짜에 ai 추천을 거치는 등의 이유로 다시 등록되는 경우 기존 코디를 삭제
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
-		if (coordiRepository.existsByConsistings_Clothes_MemberAndDate(member, date)) {
-			throw new CustomException(ResponseCode.COM4090);
+		Optional<Coordi> existingCoordi = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
+		if (existingCoordi.isPresent()) {
+			// coordi의 consistings 삭제
+			consistingRepository.deleteAll(existingCoordi.get().getConsistings());
+			// coordi 삭제
+			coordiRepository.delete(existingCoordi.get());
 		}
 
 		// coordi 정의

@@ -44,6 +44,15 @@ public class CoordiController {
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
 
+	@PostMapping("/plan/{addType}")
+	public ResponseEntity<ResponseMessage<DateDTO>> postPlanAddType(@PathVariable("addType") String addType, @Valid @RequestBody PlanDTO req) {
+
+		coordiService.logPlan(addType);
+		DateDTO res = coordiService.postPlan(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
 	@GetMapping({"/", ""})
 	public ResponseEntity<ResponseMessage<List<GetRootDTO.res>>> getRoot(@Valid GetRootDTO.req req) {
 
