@@ -266,6 +266,10 @@ public class OOTDService {
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
+		// 정지된 사용자인지 확인
+		LocalDate banPeriod = member.getBanPeriod();
+		if (banPeriod.compareTo(LocalDate.now()) <= 0) throw new CustomException(ResponseCode.COM4030);
+
 		OOTD ootd = new OOTD();
 		ootd.setMember(member);
 		ootd.setDepartTime(req.getDepartTime());
@@ -548,6 +552,10 @@ public class OOTDService {
 
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 정지된 사용자인지 확인
+		LocalDate banPeriod = member.getBanPeriod();
+		if (banPeriod.compareTo(LocalDate.now()) <= 0) throw new CustomException(ResponseCode.COM4030);
 
 		// req 분해
 		Long ootdId = req.getOotdId();
