@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -253,6 +254,13 @@ public class OOTDService {
 		Double lon = req.getLon();
 		Long departTime = req.getDepartTime();
 		Long arrivalTime = req.getArrivalTime();
+
+		// 현재 시각이 대상 날짜가 지나지 않은 시점이라면 오류 반환
+		// 들어온 시간을 기준으로 오늘 날짜와 24시간 이상 차이나야 함
+		long now = Instant.now().getEpochSecond();
+		if ((now - ((arrivalTime+32400)/86400)*86400-32400) < 86400) {
+			throw new CustomException(ResponseCode.COM4000, "아직 등록할 수 없는 날짜입니다.");
+		}
 
 		if (arrivalTime < departTime) {
 			throw new CustomException(ResponseCode.COM4000, "등록하려는 날짜가 잘못되었습니다.");
