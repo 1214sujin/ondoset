@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,8 @@ public class AdminBlacklistService {
 
 		Member member = memberRepository.findById(memberId).get();
 
-		member.setBanPeriod(req.getBanPeriod());
+		LocalDate banPeriod = LocalDate.now().plusDays(req.getBanPeriod());
+		member.setBanPeriod(banPeriod);
 
 		return new PutRootDTO.res(memberRepository.save(member).getId());
 	}
