@@ -1,4 +1,5 @@
 package com.ondoset.service;
+import com.ondoset.common.Ai;
 import com.ondoset.common.Kma;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
@@ -37,6 +38,7 @@ public class OOTDService {
 	private final FollowingRepository followingRepository;
 	private final ReportRepository reportRepository;
 	private final Kma kma;
+	private final Ai ai;
 	@Value("${com.ondoset.resources.path}")
 	private String resourcesPath;
 
@@ -110,6 +112,37 @@ public class OOTDService {
 			ootdList = ootdRepository.pageWeather(member, weather, tempRate);
 		} else {
 			ootdList = ootdRepository.pageWeather(member, weather, tempRate, lastPage);
+		}
+
+		OotdPageDTO res = new OotdPageDTO();
+
+		res.setOotdList(ootdList);
+		if (ootdList.size() < 10) {
+			res.setLastPage(-2L);
+		} else {
+			res.setLastPage(ootdList.get(9).getOotdId());
+		}
+
+		return res;
+	}
+
+	public OotdPageDTO getLatest(Long lastPage) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// ai로부터 현재 사용자와 비슷한 사용자의 목록 획득
+		List<Member> similarUserList = ai.getSimilarUser(member.getId()).stream().map(memberId ->
+				memberRepository.findById(memberId).get()).toList();
+
+		// similarUserList에 속한 사용자들의 ootd를 최신순으로 획득
+		ootdRepository.pageLatest(similarUserList);
+
+		List<OotdDTO> ootdList;
+		if (lastPage.equals(-1L)) {
+			ootdList = ootdRepository.pageLatest(similarUserList);
+		} else {
+			ootdList = ootdRepository.pageLatest(similarUserList, lastPage);
 		}
 
 		OotdPageDTO res = new OotdPageDTO();

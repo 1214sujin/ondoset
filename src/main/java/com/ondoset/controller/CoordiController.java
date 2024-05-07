@@ -20,6 +20,14 @@ public class CoordiController {
 
 	private final CoordiService coordiService;
 
+	@PostMapping("/satisfaction-pred")
+	public ResponseEntity<ResponseMessage<SatisfactionPredDTO.res>> postSatisfactionPred(@Valid @RequestBody SatisfactionPredDTO.req req) {
+
+		SatisfactionPredDTO.res res = coordiService.postSatisfactionPred(req.getTagComb());
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
 	@PostMapping({"/", ""})
 	public ResponseEntity<ResponseMessage<DateDTO>> postRoot(@Valid @RequestBody PostRootDTO req) {
 
@@ -36,10 +44,22 @@ public class CoordiController {
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
 
+	@PostMapping("/plan/{addType}")
+	public ResponseEntity<ResponseMessage<DateDTO>> postPlanAddType(@PathVariable("addType") String addType, @Valid @RequestBody PlanDTO req) {
+
+		coordiService.logPlan(addType);
+		DateDTO res = coordiService.postPlan(req);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
 	@GetMapping({"/", ""})
 	public ResponseEntity<ResponseMessage<List<GetRootDTO.res>>> getRoot(@Valid GetRootDTO.req req) {
 
-		List<GetRootDTO.res> res = coordiService.getRoot(req);
+		Integer year = req.getYear();
+		Integer month = req.getMonth();
+
+		List<GetRootDTO.res> res = coordiService.getRoot(year, month);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}

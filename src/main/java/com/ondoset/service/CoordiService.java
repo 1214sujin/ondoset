@@ -1,5 +1,6 @@
 package com.ondoset.service;
 
+import com.ondoset.common.Ai;
 import com.ondoset.common.Kma;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
@@ -27,8 +28,11 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Log4j2
@@ -42,8 +46,19 @@ public class CoordiService {
 	private final ConsistingRepository consistingRepository;
 	private final ClothesRepository clothesRepository;
 	private final Kma kma;
+	private final Ai ai;
 	@Value("${com.ondoset.resources.path}")
 	private String resourcesPath;
+
+	public SatisfactionPredDTO.res postSatisfactionPred(List<FullTagDTO> tagComb) {
+
+		Satisfaction satisfaction = ai.getSatisfaction(tagComb);
+
+		SatisfactionPredDTO.res res = new SatisfactionPredDTO.res();
+		res.setPred(satisfaction);
+
+		return res;
+	}
 
 	public DateDTO postRoot(PostRootDTO req) {
 
@@ -52,7 +67,7 @@ public class CoordiService {
 
 		// 이미 사용자가 해당 날짜에 코디 데이터를 가지고 있다면 오류 반환
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
-		if (coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date) != null) {
+		if (coordiRepository.existsByConsistings_Clothes_MemberAndDate(member, date)) {
 			throw new CustomException(ResponseCode.COM4090);
 		}
 
@@ -104,14 +119,25 @@ public class CoordiService {
 		return res;
 	}
 
+	public void logPlan(String addType) {
+
+		switch (addType) {
+			case "plan", "past", "ai" -> log.info(addType);
+			default -> throw new CustomException(ResponseCode.COM4000);
+		}
+	}
 	public DateDTO postPlan(PlanDTO req) {
 
 		Long date = req.getDate();
 
-		// 이미 사용자가 해당 날짜에 코디 데이터를 가지고 있다면 오류 반환
+		// 이미 코디 계획이 있는 날짜에 ai 추천을 거치는 등의 이유로 다시 등록되는 경우 기존 코디를 삭제
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
-		if (coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date) != null) {
-			throw new CustomException(ResponseCode.COM4090);
+		Optional<Coordi> existingCoordi = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
+		if (existingCoordi.isPresent()) {
+			// coordi의 consistings 삭제
+			consistingRepository.deleteAll(existingCoordi.get().getConsistings());
+			// coordi 삭제
+			coordiRepository.delete(existingCoordi.get());
 		}
 
 		// coordi 정의
@@ -139,13 +165,13 @@ public class CoordiService {
 		return res;
 	}
 
-	public List<GetRootDTO.res> getRoot(GetRootDTO.req req) {
+	public List<GetRootDTO.res> getRoot(int year, int month) {
 
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
-		// 날짜 전후 15일의 coordi 아이디 획득
-		List<Long> coordiList = coordiRepository.findByMemberAnd30Dates(member, req.getDate());
+		// 날짜가 해당하는 달의 coordi 아이디 리스트 획득
+		List<Long> coordiList = coordiRepository.findByMemberAndMonth(member, year, String.format("%02d", month));
 
 		// 각 coordi를 돌면서 clothesList 획득
 		List<GetRootDTO.res> resList = new ArrayList<>();
@@ -155,7 +181,12 @@ public class CoordiService {
 
 			GetRootDTO.res res = new GetRootDTO.res();
 			res.setCoordiId(coordi.getId());
-			res.setDate(coordi.getDate());
+
+			LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(coordi.getDate()), ZoneId.of("Asia/Seoul"));
+			res.setYear(dateTime.getYear());
+			res.setMonth(dateTime.getMonthValue());
+			res.setDay(dateTime.getDayOfMonth());
+
 			res.setSatisfaction(coordi.getSatisfaction());
 			res.setDepartTime(coordi.getDepartTime());
 			res.setArrivalTime(coordi.getArrivalTime());
@@ -174,7 +205,7 @@ public class CoordiService {
 				clothesDTO.setName(clothes.getName());
 				clothesDTO.setImageURL(clothes.getImageURL());
 				clothesDTO.setCategory(clothes.getTag().getCategory());
-				clothesDTO.setTag(clothesDTO.getTag());
+				clothesDTO.setTag(clothes.getTag().getName());
 				clothesDTO.setThickness(clothes.getThickness());
 
 				clothesList.add(clothesDTO);

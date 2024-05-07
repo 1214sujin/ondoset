@@ -16,4 +16,6 @@ public @interface Enum {
 	Class<? extends Payload>[] payload() default {};
 
 	Class<? extends java.lang.Enum<?>> enumClass();
+
+	boolean nullable() default false;
 }

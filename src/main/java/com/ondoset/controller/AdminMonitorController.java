@@ -3,6 +3,8 @@ package com.ondoset.controller;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
 import com.ondoset.dto.admin.monitor.ActiveUserDTO;
+import com.ondoset.dto.admin.monitor.LogDTO;
+import com.ondoset.dto.admin.monitor.RecordingPathDTO;
 import com.ondoset.service.AdminMonitorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +52,22 @@ public class AdminMonitorController {
 		} catch (Exception e) {
 			return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, "Error"));
 		}
+	}
+
+	@GetMapping("/main")
+	public ResponseEntity<ResponseMessage<List<LogDTO>>> getMain() {
+
+		List<LogDTO> res = adminMonitorService.getMain();
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
+	@GetMapping("/recording-path")
+	public ResponseEntity<ResponseMessage<RecordingPathDTO>> getRecordingPath() {
+
+		RecordingPathDTO res = adminMonitorService.getRecordingPath();
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
 
 	@GetMapping("/active-user")

@@ -34,7 +34,6 @@ out/
 /.nb-gradle/
 
 /src/main/resources/application.properties
-/src/main/resources/META_INF/persistence.xml
 /settings.gradle
 /gradlew.bat
 /gradlew

@@ -1,12 +1,15 @@
 package com.ondoset.service;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ondoset.common.Ai;
 import com.ondoset.common.Kma;
-import com.ondoset.controller.advice.CustomException;
+import com.ondoset.common.LogEntity;
 import com.ondoset.dto.admin.monitor.ActiveUserDTO;
-import com.ondoset.dto.kma.PastWDTO;
+import com.ondoset.dto.admin.monitor.LogDTO;
+import com.ondoset.dto.admin.monitor.RecordingPathDTO;
+import com.ondoset.repository.LogRepository;
 import com.ondoset.repository.MemberRepository;
 import com.ondoset.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +26,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+@SuppressWarnings("ALL")
 @Log4j2
 @RequiredArgsConstructor
 @Service
@@ -36,6 +41,7 @@ public class AdminMonitorService {
 	@Value("${com.ondoset.data.service_key}")
 	private String serviceKey;
 	private final TagRepository tagRepository;
+	private final LogRepository logRepository;
 	private final MemberRepository memberRepository;
 
 	public void getAi() throws Exception {
@@ -70,6 +76,48 @@ public class AdminMonitorService {
 		String kmaErrorCode = result.getAsJsonObject("response").getAsJsonObject("header").get("resultCode").toString().replace("\"", "");
 		if (!kmaErrorCode.equals("00")) return "Maintenance";
 		return "Normal";
+	}
+
+	public List<LogDTO> getMain() {
+
+		// 최근 100개 오류 로그를 가져온다.
+		List<LogEntity> logEntityList = logRepository.findTop100ByLevelOrLevelOrderByIdDesc();
+
+		List<LogDTO> res = new ArrayList<>();
+		for (LogEntity l : logEntityList) {
+
+			LogDTO logDTO = new LogDTO();
+			logDTO.setDate(l.getDate().toString());
+			logDTO.setLevel(l.getLevel());
+
+			// Location stack의 가장 위 값만 전송
+			Gson gson = new Gson();
+			String location = l.getLocation();
+			List<String> locationList = gson.fromJson(location, List.class);
+			if (location.equals("[]")) {
+				logDTO.setLocation("springframework");
+			} else {
+				logDTO.setLocation(locationList.get(locationList.size()-1));
+			}
+
+			logDTO.setMsg(l.getMsg());
+			res.add(logDTO);
+		}
+		return res;
+	}
+
+	public RecordingPathDTO getRecordingPath() {
+
+		// 최근 5달의 log(info)의 plan/past/ai 값의 개수를 세어 반환
+		int MONTH_SECOND = 2629743;
+		Date date = Date.from(Instant.now().minusSeconds(MONTH_SECOND * 5));
+
+		RecordingPathDTO res = new RecordingPathDTO();
+		res.setDirectly(logRepository.countPlan(date));
+		res.setPast(logRepository.countPast(date));
+		res.setAi(logRepository.countAi(date));
+
+		return res;
 	}
 
 	public List<ActiveUserDTO> getActiveUser() {

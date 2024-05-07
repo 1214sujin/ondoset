@@ -35,6 +35,14 @@ public class OOTDController {
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
 
+	@GetMapping("/latest")
+	public ResponseEntity<ResponseMessage<OotdPageDTO>> getLatest(PageDTO req) {
+
+		OotdPageDTO res = ootdService.getLatest(req.getLastPage());
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
 	@GetMapping("/weather")
 	public ResponseEntity<ResponseMessage<OotdPageDTO>> getWeather(@Valid WeatherDTO req) {
 
