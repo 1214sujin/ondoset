@@ -71,13 +71,7 @@ public class CoordiService {
 			throw new CustomException(ResponseCode.COM4090);
 		}
 
-		// 현재 시각이 대상 날짜가 지나지 않은 시점이라면 오류 반환
-		// 들어온 시간을 기준으로 오늘 날짜와 24시간 이상 차이나야 함
 		Long arrivalTime = req.getArrivalTime();
-		long now = Instant.now().getEpochSecond();
-		if ((now - ((arrivalTime+32400)/86400)*86400-32400) < 86400) {
-			throw new CustomException(ResponseCode.COM4000, "아직 등록할 수 없는 날짜입니다.");
-		}
 		if (arrivalTime < departTime) {
 			throw new CustomException(ResponseCode.COM4000, "등록하려는 날짜가 잘못되었습니다.");
 		}
@@ -87,22 +81,27 @@ public class CoordiService {
 		Double lon = req.getLon();
 		List<Long> clothesIdList = req.getClothesList();
 
-		// coordi, consisting에 들어갈 친구들 생성
-		PastWDTO pastW = kma.getPastW(lat, lon, departTime, arrivalTime);
-		List<Clothes> clothesList = clothesRepository.findByIdIn(clothesIdList);
-
 		// coordi 정의
 		Coordi coordi = new Coordi();
 		coordi.setDate(date);
 		coordi.setDepartTime(departTime);
 		coordi.setArrivalTime(arrivalTime);
-		coordi.setWeather(pastW.getWeather());
-		coordi.setLowestTemp(pastW.getLowestTemp());
-		coordi.setHighestTemp(pastW.getHighestTemp());
+
+		// 날씨를 조회하려면 들어온 시간을 기준으로 오늘 날짜와 24시간 이상 차이나야 함
+		// 조건에 부합하지 않는다면 계획까지만 생성. 외출 시간은 추후에 등록해달라는 안내 필요
+		long now = Instant.now().getEpochSecond();
+		if ((now - ((arrivalTime+32400)/86400)*86400-32400) < 86400) {
+			PastWDTO pastW = kma.getPastW(lat, lon, departTime, arrivalTime);
+			coordi.setWeather(pastW.getWeather());
+			coordi.setLowestTemp(pastW.getLowestTemp());
+			coordi.setHighestTemp(pastW.getHighestTemp());
+		}
 
 		coordiRepository.save(coordi);
 
 		// consisting 정의
+		List<Clothes> clothesList = clothesRepository.findByIdIn(clothesIdList);
+
 		ArrayList<Consisting> consistingList = new ArrayList<>();
 		for (Clothes ct : clothesList) {
 
@@ -128,7 +127,10 @@ public class CoordiService {
 	}
 	public DateDTO postPlan(PlanDTO req) {
 
-		Long date = req.getDate();
+		//(등록 날짜 ≥ 오늘 날짜)일 때만 등록 가능
+		long date = req.getDate();
+		long today = ((Instant.now().getEpochSecond()+32400)/86400)*86400-32400;
+		if (date < today) throw new CustomException(ResponseCode.COM4000, "코디 기록을 이용해주세요.");
 
 		// 이미 코디 계획이 있는 날짜에 ai 추천을 거치는 등의 이유로 다시 등록되는 경우 기존 코디를 삭제
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
