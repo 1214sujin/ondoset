@@ -60,7 +60,7 @@ public class CoordiService {
 		return res;
 	}
 
-	public DateDTO postRoot(PostRootDTO req) {
+	public PostResDTO postRoot(PostRootDTO req) {
 
 		Long departTime = req.getDepartTime();
 		long date = ((departTime+32400)/86400)*86400-32400;
@@ -87,6 +87,10 @@ public class CoordiService {
 		coordi.setDepartTime(departTime);
 		coordi.setArrivalTime(arrivalTime);
 
+		PostResDTO res = new PostResDTO();
+		res.setDate(date);
+		res.setSaved(false);
+
 		// 날씨를 조회하려면 들어온 시간을 기준으로 오늘 날짜와 24시간 이상 차이나야 함
 		// 조건에 부합하지 않는다면 계획까지만 생성. 외출 시간은 추후에 등록해달라는 안내 필요
 		long now = Instant.now().getEpochSecond();
@@ -95,6 +99,7 @@ public class CoordiService {
 			coordi.setWeather(pastW.getWeather());
 			coordi.setLowestTemp(pastW.getLowestTemp());
 			coordi.setHighestTemp(pastW.getHighestTemp());
+			res.setSaved(true);
 		}
 
 		coordiRepository.save(coordi);
@@ -112,9 +117,6 @@ public class CoordiService {
 		}
 		consistingRepository.saveAll(consistingList);
 
-		DateDTO res = new DateDTO();
-
-		res.setDate(date);
 		return res;
 	}
 
