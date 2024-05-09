@@ -299,22 +299,19 @@ public class Kma {
 				"&serviceKey=%s", numOfRows, time.substring(0, 8), String.format("%02d00", clock*3-1), x, y, serviceKey));
 
 		if (timeFromToday == 0) {
-			return getTodayW(lat, lon, items, date);
+			return getTodayW(lat, lon, x, y, items, date);
 		} else {
 			return getLaterW(items, date);
 		}
 	}
 
 	// 현재 날씨 획득 (getTodayW에 포함)
-	private NowWDTO getNowW(Double lat, Double lon) {
+	private NowWDTO getNowW(Double lat, Double lon, String x, String y) {
 
 		long now = Instant.now().getEpochSecond();
 		String time = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
 
 		// API 요청 인자 생성
-		Map<String, String> xy = getXY(lat, lon);
-		String x = xy.get("x");
-		String y = xy.get("y");
 		// 현재 시(hour)의 40분이 넘었는지 확인
 		int clock = (int) ((now - ((now + 32400) / 86400) * 86400) + 30000);
 		if (clock < 0) {
@@ -363,11 +360,11 @@ public class Kma {
 		if (month >= 5 && month <= 9) feel = getSummerFeel(tmp, reh);
 		else feel = getWinterFeel(tmp, wsd);
 
-		return new NowWDTO(tmp, diff, feel, weather, clock == 23 ? 0 : clock + 1);
+		return new NowWDTO(tmp, diff, feel, weather, Integer.parseInt(time.substring(8,10))+1);
 	}
 
 	// 오늘 날씨 획득 (getDayW에 포함)
-	private ForecastDTO getTodayW(Double lat, Double lon, JsonArray items, Long date) {
+	private ForecastDTO getTodayW(Double lat, Double lon, String x, String y, JsonArray items, Long date) {
 
 		String reqDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(date), ZoneId.of("Asia/Seoul")).format(kmaFormatter).substring(0, 8);
 
@@ -420,7 +417,7 @@ public class Kma {
 		}
 
 		// 현재 날씨를 획득
-		NowWDTO nowW = getNowW(lat, lon);
+		NowWDTO nowW = getNowW(lat, lon, x, y);
 		result.setNow(nowW.getNow());
 		result.setDiff(nowW.getDiff());
 		result.setFeel(nowW.getFeel());
