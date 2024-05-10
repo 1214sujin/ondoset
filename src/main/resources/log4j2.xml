@@ -35,6 +35,9 @@
             <AppenderRef ref="console" />
             <AppenderRef ref="dbInfo"/>
         </logger>
+        <logger name="com.ondoset.OndosetApplication" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
     </Loggers>
 
 </Configuration>
