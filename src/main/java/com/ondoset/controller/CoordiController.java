@@ -29,9 +29,9 @@ public class CoordiController {
 	}
 
 	@PostMapping({"/", ""})
-	public ResponseEntity<ResponseMessage<PostResDTO>> postRoot(@Valid @RequestBody PostRootDTO req) {
+	public ResponseEntity<ResponseMessage<DateDTO>> postRoot(@Valid @RequestBody PostRootDTO req) {
 
-		PostResDTO res = coordiService.postRoot(req);
+		DateDTO res = coordiService.postRoot(req);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
