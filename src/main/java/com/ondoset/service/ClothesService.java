@@ -270,18 +270,21 @@ public class ClothesService {
 		return res;
 	}
 
-	public List<ClothesDTO> getSearch(Category category, String clothesName) {
+	public SearchNameDTO.res getSearch(Category category, String clothesName) {
 
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
 		// 전체 카테고리에 대한 조회인지 검사 및 분기 처리
-		List<ClothesDTO> res;
+		SearchNameDTO.res res = new SearchNameDTO.res();
+		List<ClothesDTO> clothesList;
 		if (category == null) {
-			res = clothesRepository.findBySearch(member, clothesName);
+			clothesList = clothesRepository.findBySearch(member, clothesName);
 		} else {
-			res = clothesRepository.findBySearch(member, category, clothesName);
+			clothesList = clothesRepository.findBySearch(member, category, clothesName);
 		}
+		res.setClothesList(clothesList);
+
 		return res;
 	}
 

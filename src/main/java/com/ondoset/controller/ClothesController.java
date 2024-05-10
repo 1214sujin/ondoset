@@ -48,9 +48,9 @@ public class ClothesController {
 	}
 
 	@GetMapping("/search")
-	public ResponseEntity<ResponseMessage<List<ClothesDTO>>> getSearch(@Valid SearchNameDTO req) {
+	public ResponseEntity<ResponseMessage<SearchNameDTO.res>> getSearch(@Valid SearchNameDTO.req req) {
 
-		List<ClothesDTO> res;
+		SearchNameDTO.res res;
 		try {
 			Category category = Category.valueOfLower(req.getCategory());
 			res = clothesService.getSearch(category, req.getClothesName());
