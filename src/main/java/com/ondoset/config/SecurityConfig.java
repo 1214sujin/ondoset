@@ -1,6 +1,7 @@
 package com.ondoset.config;
 
 import com.google.gson.GsonBuilder;
+import com.ondoset.common.LoggingFilter;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
 import com.ondoset.jwt.*;
@@ -21,6 +22,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.CorsFilter;
 
 @RequiredArgsConstructor
 @Configuration
@@ -30,6 +32,7 @@ public class SecurityConfig {
 	private final CustomUserDetailsService customUserDetailsService;
 	private final AuthenticationEntryPoint AdminAuthenticationEntryPoint;
 	private final JWTUtil jwtUtil;
+	private final LoggingFilter loggingFilter;
 
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
@@ -49,6 +52,9 @@ public class SecurityConfig {
 				.securityContext(AbstractHttpConfigurer::disable)
 				.csrf(AbstractHttpConfigurer::disable)
 				.sessionManagement(AbstractHttpConfigurer::disable);
+
+		http
+				.addFilterBefore(loggingFilter, CorsFilter.class);
 
 		return http.build();
 	}
@@ -106,6 +112,9 @@ public class SecurityConfig {
 				.exceptionHandling(auth ->
 						auth.authenticationEntryPoint(AdminAuthenticationEntryPoint));
 
+		http
+				.addFilterBefore(loggingFilter, CorsFilter.class);
+
 		return http.build();
 	}
 
@@ -136,7 +145,8 @@ public class SecurityConfig {
 		http
 				.addFilterBefore(new LoginFilter("/member/login", authenticationManager, jwtUtil), UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(new AccessTokenFilter(jwtUtil), LoginFilter.class)
-				.addFilterBefore(new RefreshTokenFilter("/member/jwt", jwtUtil), LoginFilter.class);
+				.addFilterBefore(new RefreshTokenFilter("/member/jwt", jwtUtil), LoginFilter.class)
+				.addFilterBefore(loggingFilter, CorsFilter.class);
 
 		return http.build();
 	}
