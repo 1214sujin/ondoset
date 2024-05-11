@@ -30,14 +30,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-@SuppressWarnings("ALL")
 @Log4j2
 @RequiredArgsConstructor
 @Service
 public class AdminMonitorService {
 
 	private final Ai ai;
-	private final Kma kma;
 	@Value("${com.ondoset.data.service_key}")
 	private String serviceKey;
 	private final TagRepository tagRepository;
