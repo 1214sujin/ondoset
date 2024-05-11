@@ -26,6 +26,8 @@ public class OOTD extends BaseEntity {
 	@JoinColumn(name = "member_id")
 	private Member member;
 
+	private String region;
+
 	// 나간 시간
 	@Column(columnDefinition = "bigint")
 	private Long departTime;

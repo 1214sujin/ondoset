@@ -28,6 +28,8 @@ public class Coordi extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Satisfaction satisfaction;
 
+    private String region;
+
     // 나간 시간
     @Column(columnDefinition = "bigint")
     private Long departTime;
