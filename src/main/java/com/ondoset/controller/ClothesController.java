@@ -24,7 +24,7 @@ public class ClothesController {
 	private final ClothesService clothesService;
 
 	@GetMapping("/home")
-	public ResponseEntity<ResponseMessage<HomeDTO.res>> getHome(@Valid @RequestBody HomeDTO.req req) {
+	public ResponseEntity<ResponseMessage<HomeDTO.res>> getHome(@Valid HomeDTO.req req) {
 
 		HomeDTO.res res = clothesService.getHome(req);
 
