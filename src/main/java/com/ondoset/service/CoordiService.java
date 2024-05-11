@@ -177,9 +177,9 @@ public class CoordiService {
 
 		// 각 coordi를 돌면서 clothesList 획득
 		List<GetRootDTO.res> resList = new ArrayList<>();
-		for (Long coordi_id : coordiList) {
+		for (Long coordiId : coordiList) {
 
-			Coordi coordi = coordiRepository.findById(coordi_id).get();
+			Coordi coordi = coordiRepository.findById(coordiId).get();
 
 			GetRootDTO.res res = new GetRootDTO.res();
 			res.setCoordiId(coordi.getId());
@@ -190,6 +190,61 @@ public class CoordiService {
 			res.setDay(dateTime.getDayOfMonth());
 
 			res.setSatisfaction(coordi.getSatisfaction());
+			res.setRegion(coordi.getRegion());
+			res.setDepartTime(coordi.getDepartTime());
+			res.setArrivalTime(coordi.getArrivalTime());
+			res.setWeather(coordi.getWeather());
+			res.setLowestTemp(coordi.getLowestTemp());
+			res.setHighestTemp(coordi.getHighestTemp());
+			res.setImageURL(coordi.getImageURL());
+
+			List<ClothesDTO> clothesList = new ArrayList<>();
+			for (Consisting consisting : coordi.getConsistings()) {
+
+				Clothes clothes = consisting.getClothes();
+
+				ClothesDTO clothesDTO = new ClothesDTO();
+				clothesDTO.setClothesId(clothes.getId());
+				clothesDTO.setName(clothes.getName());
+				clothesDTO.setImageURL(clothes.getImageURL());
+				clothesDTO.setCategory(clothes.getTag().getCategory());
+				clothesDTO.setTag(clothes.getTag().getName());
+				clothesDTO.setTagId(clothes.getTag().getId());
+				clothesDTO.setThickness(clothes.getThickness());
+
+				clothesList.add(clothesDTO);
+			}
+			res.setClothesList(clothesList);
+
+			resList.add(res);
+		}
+
+		return resList;
+	}
+
+	public List<GetRootDTO.res> getRoot(int year, int month, int day) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 해당하는 날짜의 coordi 아이디 획득
+		Long coordiId = coordiRepository.findByMemberAndMonth(member, year, String.format("%02d", month), String.format("%02d", day));
+
+		List<GetRootDTO.res> resList = new ArrayList<>();
+		if (coordiId != null) {
+
+			Coordi coordi = coordiRepository.findById(coordiId).get();
+
+			GetRootDTO.res res = new GetRootDTO.res();
+			res.setCoordiId(coordi.getId());
+
+			LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(coordi.getDate()), ZoneId.of("Asia/Seoul"));
+			res.setYear(dateTime.getYear());
+			res.setMonth(dateTime.getMonthValue());
+			res.setDay(dateTime.getDayOfMonth());
+
+			res.setSatisfaction(coordi.getSatisfaction());
+			res.setRegion(coordi.getRegion());
 			res.setDepartTime(coordi.getDepartTime());
 			res.setArrivalTime(coordi.getArrivalTime());
 			res.setWeather(coordi.getWeather());

@@ -19,6 +19,7 @@ public class GetRootDTO {
 		private Integer year;
 		@NotNull
 		private Integer month;
+		private Integer day;
 	}
 
 	@Getter
@@ -30,6 +31,7 @@ public class GetRootDTO {
 		private Integer month;
 		private Integer day;
 		private Satisfaction satisfaction;
+		private String region;
 		private Long departTime;
 		private Long arrivalTime;
 		private Weather weather;
