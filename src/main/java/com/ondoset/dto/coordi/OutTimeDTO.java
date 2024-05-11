@@ -13,6 +13,8 @@ public class OutTimeDTO {
 	@NotNull
 	private Double lon;
 	@NotNull
+	private String region;
+	@NotNull
 	private Long departTime;
 	@NotNull
 	private Long arrivalTime;

@@ -79,11 +79,13 @@ public class CoordiService {
 		// req 분해
 		Double lat = req.getLat();
 		Double lon = req.getLon();
+		String region = req.getRegion();
 		List<Long> clothesIdList = req.getClothesList();
 
 		// coordi 정의
 		Coordi coordi = new Coordi();
 		coordi.setDate(date);
+		coordi.setRegion(region);
 		coordi.setDepartTime(departTime);
 		coordi.setArrivalTime(arrivalTime);
 
@@ -407,11 +409,13 @@ public class CoordiService {
 		// req 분해
 		Double lat = req.getLat();
 		Double lon = req.getLon();
+		String region = req.getRegion();
 
 		// 날씨 계산
 		PastWDTO pastW = kma.getPastW(lat, lon, departTime, arrivalTime);
 
 		// coordi 수정
+		coordi.setRegion(region);
 		coordi.setDepartTime(departTime);
 		coordi.setArrivalTime(arrivalTime);
 		coordi.setWeather(pastW.getWeather());
