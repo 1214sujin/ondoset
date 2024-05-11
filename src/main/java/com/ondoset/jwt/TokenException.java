@@ -19,17 +19,21 @@ public class TokenException extends RuntimeException {
 		super(error.getMessage());
 		this.tokenErrorCode = error;
 	}
+	public TokenException(ResponseCode error, String message) {
+		super(error.getMessage() + message);
+		this.tokenErrorCode = error;
+	}
 
 	public void sendResponseError(HttpServletResponse response) throws IOException {
 
-		log.error(tokenErrorCode.getMessage());
+		log.error(this.getMessage());
 
 		response.setStatus(tokenErrorCode.getStatus());
 
 		response.setContentType("application/json");
 		response.setCharacterEncoding("utf-8");
 
-		ResponseMessage<String> message = new ResponseMessage<>(tokenErrorCode, "");
+		ResponseMessage<String> message = new ResponseMessage<>(tokenErrorCode, this.getMessage(), "");
 		String result = new Gson().toJson(message);
 		response.getWriter().write(result);
 	}

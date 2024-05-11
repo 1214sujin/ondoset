@@ -55,7 +55,7 @@ public class JWTUtil {
 		// Authorization 헤더 유효성 검증
 		if (authorization == null || !authorization.startsWith("Bearer ")) {
 
-			throw new TokenException(ResponseCode.COM4010);
+			throw new TokenException(ResponseCode.COM4010, "인증 정보가 비어 있습니다.");
 		}
 
 		String token = authorization.split(" ")[1];
