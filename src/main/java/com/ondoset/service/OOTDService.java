@@ -276,10 +276,11 @@ public class OOTDService {
 
 		// 정지된 사용자인지 확인
 		LocalDate banPeriod = member.getBanPeriod();
-		if (banPeriod.compareTo(LocalDate.now()) <= 0) throw new CustomException(ResponseCode.COM4030);
+		if (banPeriod.compareTo(LocalDate.now()) > 0) throw new CustomException(ResponseCode.COM4030);
 
 		OOTD ootd = new OOTD();
 		ootd.setMember(member);
+		ootd.setRegion(req.getRegion());
 		ootd.setDepartTime(req.getDepartTime());
 		ootd.setArrivalTime(req.getArrivalTime());
 		ootd.setWeather(Weather.valueOfLower(req.getWeather()));
@@ -350,6 +351,7 @@ public class OOTDService {
 
 		// ootd 엔티티 수정
 		ootd.setMember(member);
+		ootd.setRegion(req.getRegion());
 		ootd.setDepartTime(req.getDepartTime());
 		ootd.setArrivalTime(req.getArrivalTime());
 		ootd.setWeather(Weather.valueOfLower(req.getWeather()));
@@ -563,7 +565,7 @@ public class OOTDService {
 
 		// 정지된 사용자인지 확인
 		LocalDate banPeriod = member.getBanPeriod();
-		if (banPeriod.compareTo(LocalDate.now()) <= 0) throw new CustomException(ResponseCode.COM4030);
+		if (banPeriod.compareTo(LocalDate.now()) > 0) throw new CustomException(ResponseCode.COM4030);
 
 		// req 분해
 		Long ootdId = req.getOotdId();

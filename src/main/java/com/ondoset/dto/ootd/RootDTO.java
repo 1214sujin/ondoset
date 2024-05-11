@@ -17,6 +17,8 @@ public class RootDTO {
 	public static class req {
 
 		@NotNull
+		private String region;
+		@NotNull
 		private Long departTime;
 		@NotNull
 		private Long arrivalTime;
@@ -36,6 +38,8 @@ public class RootDTO {
 	@Setter
 	public static class putReq {	// 이미지를 받지 않을 수도 있음
 
+		@NotNull
+		private String region;
 		@NotNull
 		private Long departTime;
 		@NotNull
