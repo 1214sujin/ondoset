@@ -123,14 +123,14 @@ public class AdminMonitorService {
 		DateTimeFormatter sqlFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(TimeZone.getDefault().toZoneId());
 
 		// 서비스와 관련된 테이블에 대하여 최근 업데이트를 발생시킨 멤버 수를 달별로 획득;
-		LocalDateTime dateTime = LocalDateTime.now();
+		LocalDateTime dateTime = LocalDateTime.now().plusDays(1);
 
 		List<ActiveUserDTO> res = new ArrayList<>();
 		for (long i = 0; i < 12; i++) {
 
-			Long period = dateTime.minusMonths(i-1).toLocalDate().toEpochDay() * 86400 - 32400;
+			Long period = dateTime.minusMonths(i+1).toLocalDate().toEpochDay() * 86400 - 32400;
 
-			String startDate = dateTime.minusMonths(i-1).format(sqlFormatter);
+			String startDate = dateTime.minusMonths(i+1).format(sqlFormatter);
 			String endDate = dateTime.minusMonths(i).format(sqlFormatter);
 			Long count = memberRepository.countActiveMember(startDate, endDate);
 
