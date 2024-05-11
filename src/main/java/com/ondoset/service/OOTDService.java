@@ -337,6 +337,40 @@ public class OOTDService {
 		return res;
 	}
 
+	public ModifyPageDTO getModifyPage(Long ootdId) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		if (!ootdRepository.existsByIdAndMember(ootdId, member)) {
+			throw new CustomException(ResponseCode.COM4010, "요청된 자원에 접근할 수 없는 계정입니다: " + member.getName());
+		}
+
+		// 요청된 ootd 엔티티 획득
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		ModifyPageDTO res = new ModifyPageDTO();
+		res.setOotdId(ootdId);
+		res.setRegion(ootd.getRegion());
+		res.setDepartTime(ootd.getDepartTime());
+		res.setArrivalTime(ootd.getArrivalTime());
+		res.setWeather(ootd.getWeather());
+		res.setLowestTemp(ootd.getLowestTemp());
+		res.setHighestTemp(ootd.getHighestTemp());
+		res.setImageURL(ootd.getImageURL());
+
+		// 입은 옷 정보
+		List<String> wearingList = new ArrayList<>();
+		for (Wearing wearing : ootd.getWearings()) {
+
+			wearingList.add(wearing.getName());
+		}
+
+		res.setWearingList(wearingList);
+
+		return res;
+	}
+
 	public RootDTO.res putRoot(Long ootdId, RootDTO.putReq req) {
 
 		// 현재 사용자 조회
