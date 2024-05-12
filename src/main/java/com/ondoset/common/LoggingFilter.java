@@ -2,6 +2,9 @@ package com.ondoset.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.GsonBuilder;
+import com.ondoset.controller.advice.ResponseCode;
+import com.ondoset.controller.advice.ResponseMessage;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,12 +25,27 @@ import java.util.Iterator;
 public class LoggingFilter extends OncePerRequestFilter {
 
 	@Override
-	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws IOException {
 
 		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
 		ThreadContext.push(String.format("\"%s %s\"", requestWrapper.getMethod(), requestWrapper.getRequestURI()));
 
-		filterChain.doFilter(requestWrapper, response);
+		//filter단에서 생긴 오류를 catch
+		try {
+
+			filterChain.doFilter(requestWrapper, response);
+		} catch (Exception e) {
+
+			log.error(e);
+
+			response.setStatus(500);
+			response.setContentType("application/json");
+			response.setCharacterEncoding("utf-8");
+
+			ResponseMessage<String> message = new ResponseMessage<>(ResponseCode.COM5000, "");
+			String result = new GsonBuilder().serializeNulls().create().toJson(message);
+			response.getWriter().write(result);
+		}
 
 		// 입력값 로깅
 		StringBuilder requestLog = new StringBuilder();

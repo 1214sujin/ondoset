@@ -22,7 +22,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.CorsFilter;
+import org.springframework.security.web.header.HeaderWriterFilter;
 
 @RequiredArgsConstructor
 @Configuration
@@ -54,7 +54,7 @@ public class SecurityConfig {
 				.sessionManagement(AbstractHttpConfigurer::disable);
 
 		http
-				.addFilterBefore(loggingFilter, CorsFilter.class);
+				.addFilterBefore(loggingFilter, HeaderWriterFilter.class);
 
 		return http.build();
 	}
@@ -113,7 +113,7 @@ public class SecurityConfig {
 						auth.authenticationEntryPoint(AdminAuthenticationEntryPoint));
 
 		http
-				.addFilterBefore(loggingFilter, CorsFilter.class);
+				.addFilterBefore(loggingFilter, HeaderWriterFilter.class);
 
 		return http.build();
 	}
@@ -146,7 +146,7 @@ public class SecurityConfig {
 				.addFilterBefore(new LoginFilter("/member/login", authenticationManager, jwtUtil), UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(new AccessTokenFilter(jwtUtil), LoginFilter.class)
 				.addFilterBefore(new RefreshTokenFilter("/member/jwt", jwtUtil), LoginFilter.class)
-				.addFilterBefore(loggingFilter, CorsFilter.class);
+				.addFilterBefore(loggingFilter, HeaderWriterFilter.class);
 
 		return http.build();
 	}
