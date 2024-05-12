@@ -92,10 +92,10 @@ public class CoordiService {
 		DateDTO res = new DateDTO();
 		res.setDate(date);
 
-		// 날씨를 조회하려면 들어온 시간을 기준으로 오늘 날짜와 24시간 이상 차이나야 함
-		// 조건에 부합하지 않는다면 계획까지만 생성. 외출 시간은 추후에 등록해달라는 안내 필요
+		// 날씨를 조회하려면 등록하려는 날짜가 오늘 날짜와 24시간 이상 차이나야 함
+		// 조건에 부합하지 않는다면 계획까지만 생성
 		long now = Instant.now().getEpochSecond();
-		if ((now - ((arrivalTime+32400)/86400)*86400-32400) < 86400) {
+		if ((now - ((arrivalTime+32400)/86400)*86400-32400) >= 86400) {
 			PastWDTO pastW = kma.getPastW(lat, lon, departTime, arrivalTime);
 			coordi.setWeather(pastW.getWeather());
 			coordi.setLowestTemp(pastW.getLowestTemp());
@@ -392,11 +392,10 @@ public class CoordiService {
 		// 요청된 coordi 엔티티 획득
 		Coordi coordi = coordiRepository.findById(coordiId).get();
 
-		// 현재 시각이 대상 날짜가 지나지 않은 시점이라면 오류 반환
-		// 들어온 시간을 기준으로 오늘 날짜와 24시간 이상 차이나야 함
+		// 날씨를 조회하려면 등록하려는 날짜가 오늘 날짜와 24시간 이상 차이나야 함
 		Long arrivalTime = req.getArrivalTime();
 		long now = Instant.now().getEpochSecond();
-		if ((now - ((arrivalTime+32400)/86400)*86400-32400) < 86400) {
+		if ((now - ((arrivalTime+32400)/86400)*86400-32400) >= 86400) {
 			throw new CustomException(ResponseCode.COM4000, "아직 등록할 수 없는 날짜입니다.");
 		}
 		// departTime을 기준으로 한 날짜가 해당 coordi가 등록된 날짜와 다른 경우 오류 반환
