@@ -14,7 +14,7 @@ public enum TempRate {
 	T12("12~16°C"),
 	T9("9~11°C"),
 	T5("5~8°C"),
-	TElse("~4°C");
+	TELSE("~4°C");
 
 	private final String name;
 

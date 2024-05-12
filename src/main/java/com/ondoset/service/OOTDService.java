@@ -292,7 +292,7 @@ public class OOTDService {
 
 		// 기온 범위 처리
 		double tempAvg = ((double) lowestTemp + (double) highestTemp) / 2;
-		if (tempAvg < 5) ootd.setTempRate(TempRate.TElse);
+		if (tempAvg < 5) ootd.setTempRate(TempRate.TELSE);
 		else if (tempAvg < 9) ootd.setTempRate(TempRate.T5);
 		else if (tempAvg < 12) ootd.setTempRate(TempRate.T9);
 		else if (tempAvg < 17) ootd.setTempRate(TempRate.T12);
@@ -396,7 +396,7 @@ public class OOTDService {
 		ootd.setHighestTemp(highestTemp);
 		// 기온 범위 처리
 		double tempAvg = ((double) lowestTemp + (double) highestTemp) / 2;
-		if (tempAvg < 5) ootd.setTempRate(TempRate.TElse);
+		if (tempAvg < 5) ootd.setTempRate(TempRate.TELSE);
 		else if (tempAvg < 9) ootd.setTempRate(TempRate.T5);
 		else if (tempAvg < 12) ootd.setTempRate(TempRate.T9);
 		else if (tempAvg < 17) ootd.setTempRate(TempRate.T12);
