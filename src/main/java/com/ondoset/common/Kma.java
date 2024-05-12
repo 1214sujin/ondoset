@@ -309,7 +309,7 @@ public class Kma {
 	private NowWDTO getNowW(Double lat, Double lon, String x, String y) {
 
 		long now = Instant.now().getEpochSecond();
-		String time = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
+		String time;
 
 		// API 요청 인자 생성
 		// 현재 시(hour)의 40분이 넘었는지 확인
@@ -317,8 +317,12 @@ public class Kma {
 		if (clock < 0) {
 			clock = 23;
 			now -= 86400;
+			time = LocalDateTime.ofInstant(Instant.now().minusSeconds(86400), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
 		}
-		else clock /= 3600;
+		else {
+			clock /= 3600;
+			time = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
+		}
 
 		// 실황 확인
 		JsonArray ncstItems = getAPIRes(String.format("https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst" +
