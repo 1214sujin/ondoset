@@ -192,7 +192,7 @@ public class Kma {
 	}
 
 	// 위도/경도를 X/Y 격자로 변환
-	private Map<String, String> getXY(Double lat, Double lon) {
+	public Map<String, String> getXY(Double lat, Double lon) {
 
 		String reqUrl = String.format("https://apihub.kma.go.kr/api/typ01/cgi-bin/url/nph-dfs_xy_lonlat?lon=%f&lat=%f&help=0&authKey=%s", lon, lat, authKey);
 
@@ -267,7 +267,7 @@ public class Kma {
 	}
 
 	// 요청 날짜의 날씨 획득
-	private ForecastDTO getDayW(Double lat, Double lon, int timeFromToday, Long date) {
+	public ForecastDTO getDayW(Double lat, Double lon, int timeFromToday, Long date) {
 
 		long now = Instant.now().getEpochSecond();
 
@@ -280,18 +280,22 @@ public class Kma {
 		String time = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
 		int clock = (int) (now + 35400 - ((now + 32400) / 86400) * 86400) / 10800;
 		switch (clock) {
-			case 0 -> {
+			case 0 -> {											// 2시 이전
 				clock = 8;
 				numOfRows = 290 + 290 * timeFromToday;
 				time = LocalDateTime.ofInstant(Instant.now().minusSeconds(86400), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
 			}
-			case 1 -> numOfRows = 254 + 290 * timeFromToday;
-			case 2 -> numOfRows = 217 + 290 * timeFromToday;
-			case 3 -> numOfRows = 181 + 290 * timeFromToday;
-			case 4 -> numOfRows = 145 + 290 * timeFromToday;
-			case 5 -> numOfRows = 108 + 290 * timeFromToday;
-			case 6 -> numOfRows = 72 + 290 * timeFromToday;
-			case 7 -> numOfRows = 36 + 290 * timeFromToday;
+			case 1 -> numOfRows = 254 + 290 * timeFromToday;	// 5시 이전
+			case 2 -> numOfRows = 217 + 290 * timeFromToday;	// 8시 이전
+			case 3 -> numOfRows = 181 + 290 * timeFromToday;	// 11시 이전
+			case 4 -> numOfRows = 145 + 290 * timeFromToday;	// 14시 이전
+			case 5 -> numOfRows = 108 + 290 * timeFromToday;	// 17시 이전
+			case 6 -> numOfRows = 72 + 290 * timeFromToday;		// 20시 이전
+			case 7 -> numOfRows = 36 + 290 * timeFromToday;		// 23시 이전
+			case 8 -> {											// 24시 이전
+				numOfRows = 290 + 290 * timeFromToday;
+				date += 86400;
+			}
 		}
 
 		JsonArray items = getAPIRes(String.format("https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst" +
@@ -306,7 +310,7 @@ public class Kma {
 	}
 
 	// 현재 날씨 획득 (getTodayW에 포함)
-	private NowWDTO getNowW(Double lat, Double lon, String x, String y) {
+	public NowWDTO getNowW(Double lat, Double lon, String x, String y) {
 
 		long now = Instant.now().getEpochSecond();
 		String time;
@@ -364,11 +368,14 @@ public class Kma {
 		if (month >= 5 && month <= 9) feel = getSummerFeel(tmp, reh);
 		else feel = getWinterFeel(tmp, wsd);
 
-		return new NowWDTO(tmp, diff, feel, weather, Integer.parseInt(time.substring(8,10))+1);
+		clock = Integer.parseInt(time.substring(8,10))+1;
+		if (clock == 24) clock = 0;
+
+		return new NowWDTO(tmp, diff, feel, weather, clock);
 	}
 
 	// 오늘 날씨 획득 (getDayW에 포함)
-	private ForecastDTO getTodayW(Double lat, Double lon, String x, String y, JsonArray items, Long date) {
+	public ForecastDTO getTodayW(Double lat, Double lon, String x, String y, JsonArray items, Long date) {
 
 		String reqDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(date), ZoneId.of("Asia/Seoul")).format(kmaFormatter).substring(0, 8);
 
@@ -442,7 +449,7 @@ public class Kma {
 	}
 
 	// 미래 날씨 획득 (getDayW에 포함)
-	private ForecastDTO getLaterW(JsonArray items, Long date) {
+	public ForecastDTO getLaterW(JsonArray items, Long date) {
 
 		// 단기예보 API 호출 및 내일or모레에 대한 기온/하늘상태 획득
 
