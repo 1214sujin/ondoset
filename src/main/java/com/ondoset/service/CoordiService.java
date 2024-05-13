@@ -52,7 +52,10 @@ public class CoordiService {
 
 	public SatisfactionPredDTO.res postSatisfactionPred(List<FullTagDTO> tagComb) {
 
-		Satisfaction satisfaction = ai.getSatisfaction(tagComb);
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		Satisfaction satisfaction = ai.getSatisfaction(member, tagComb);
 
 		SatisfactionPredDTO.res res = new SatisfactionPredDTO.res();
 		res.setPred(satisfaction);

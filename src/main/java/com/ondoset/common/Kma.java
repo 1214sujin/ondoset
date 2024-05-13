@@ -267,7 +267,7 @@ public class Kma {
 	}
 
 	// 요청 날짜의 날씨 획득
-	public ForecastDTO getDayW(Double lat, Double lon, int timeFromToday, Long date) {
+	public Map<String, Object> getDayW(Double lat, Double lon, int timeFromToday, Long date) {
 
 		long now = Instant.now().getEpochSecond();
 
@@ -375,7 +375,7 @@ public class Kma {
 	}
 
 	// 오늘 날씨 획득 (getDayW에 포함)
-	public ForecastDTO getTodayW(Double lat, Double lon, String x, String y, JsonArray items, Long date) {
+	public Map<String, Object> getTodayW(Double lat, Double lon, String x, String y, JsonArray items, Long date) {
 
 		String reqDate = LocalDateTime.ofInstant(Instant.ofEpochSecond(date), ZoneId.of("Asia/Seoul")).format(kmaFormatter).substring(0, 8);
 
@@ -430,7 +430,8 @@ public class Kma {
 		}
 
 		// 현재 시각-24시의 평균 기온을 로깅
-		log.info("tempAvg = {}", tmpLoggerSum / fcstRes.keySet().size());
+		Double tmpLoggerAvg = tmpLoggerSum / fcstRes.keySet().size();
+		log.info("tempAvg = {}", tmpLoggerAvg);
 
 		// 현재 날씨를 획득
 		NowWDTO nowW = getNowW(lat, lon, x, y);
@@ -450,11 +451,15 @@ public class Kma {
 		}
 		result.setWeather(weather);
 
-		return result;
+		Map<String, Object> res = new HashMap<>();
+		res.put("result", result);
+		res.put("tempAvg", tmpLoggerAvg);
+
+		return res;
 	}
 
 	// 미래 날씨 획득 (getDayW에 포함)
-	public ForecastDTO getLaterW(JsonArray items, Long date) {
+	public Map<String, Object> getLaterW(JsonArray items, Long date) {
 
 		// 단기예보 API 호출 및 내일or모레에 대한 기온/하늘상태 획득
 
@@ -551,7 +556,8 @@ public class Kma {
 		}
 
 		// 평균 기온을 로깅
-		log.info("tempAvg = {}", tmpLoggerSum / 24);
+		Double tmpLoggerAvg = tmpLoggerSum / fcstRes.keySet().size();
+		log.info("tempAvg = {}", tmpLoggerAvg);
 
 		// 평균 기온 및 체감온도
 		double tmpAvg = (Math.round(tmpSum / 13 * 10)) / 10.0;
@@ -578,11 +584,15 @@ public class Kma {
 		}
 		result.setWeather(weatherAvg);
 
-		return result;
+		Map<String, Object> res = new HashMap<>();
+		res.put("result", result);
+		res.put("tempAvg", tmpLoggerAvg);
+
+		return res;
 	}
 
 	/** 요청 날짜의 날씨 및 예보 조회 */
-	public ForecastDTO getForecast(Double lat, Double lon, Long date) {
+	public Map<String, Object> getForecast(Double lat, Double lon, Long date) {
 
 		// 오늘로부터 어느 시점에 대한 요청인지 확인 (0: 오늘, 1: 내일, 2: 모레)
 		long now = (Instant.now().getEpochSecond()+32400)/86400;

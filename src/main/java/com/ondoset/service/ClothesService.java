@@ -1,4 +1,5 @@
 package com.ondoset.service;
+
 import com.ondoset.common.Ai;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
@@ -7,6 +8,7 @@ import com.ondoset.domain.Enum.Category;
 import com.ondoset.domain.Enum.Thickness;
 import com.ondoset.domain.Tag;
 import com.ondoset.dto.clothes.*;
+import com.ondoset.dto.kma.ForecastDTO;
 import com.ondoset.repository.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,29 +51,25 @@ public class ClothesService {
 		Double lat = req.getLat();
 		Double lon = req.getLon();
 
-		// HomeDTO.res.plan 획득
-		Optional<Coordi> planCoordiOptional = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
-		List<PlanDTO> plan = null;
-		if (planCoordiOptional.isPresent()) {
-			plan = getPlan(planCoordiOptional.get());
-		}
-
-		// HomeDTO.res.record 획득
-		List<Long> dateList = ai.getSimilarDate(date);
-
-		// HomeDTO.res.recommend 획득
-		List<List<List<Long>>> tagRecommendList = ai.getRecommend(member.getId());
-
-		// HomeDTO.res.ootd 획득
-		List<Long> similarUserList = ai.getSimilarUser(member.getId());
-
 		// 응답 정의
 		HomeDTO.res res = new HomeDTO.res();
-		res.setForecast(kma.getForecast(lat, lon, date));
-		res.setPlan(plan);
-		res.setRecord(getRecord(member, dateList));
-		res.setRecommend(getRecommend(tagRecommendList));
-		res.setOotd(getOotdPreview(similarUserList));
+
+		// HomeDTO.res.forcast 획득 (recommend 획득 이전에 수행되어야 함)
+		Map<String, Object> forecast = kma.getForecast(lat, lon, date);
+		res.setForecast((ForecastDTO) forecast.get("result"));
+
+		// HomeDTO.res.plan 획득
+		Optional<Coordi> planCoordiOptional = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
+		planCoordiOptional.ifPresent(coordi -> res.setPlan(getPlan(coordi)));
+
+		// HomeDTO.res.record 획득
+		res.setRecord(getRecord(member, ai.getSimilarDate(lat, lon, date)));
+
+		// HomeDTO.res.recommend 획득
+		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), member)));
+
+		// HomeDTO.res.ootd 획득
+		res.setOotd(getOotdPreview(ai.getSimilarUser(member.getId())));
 
 		return res;
 	}
