@@ -53,9 +53,6 @@ public class SecurityConfig {
 				.csrf(AbstractHttpConfigurer::disable)
 				.sessionManagement(AbstractHttpConfigurer::disable);
 
-		http
-				.addFilterBefore(loggingFilter, HeaderWriterFilter.class);
-
 		return http.build();
 	}
 
@@ -112,9 +109,6 @@ public class SecurityConfig {
 				.exceptionHandling(auth ->
 						auth.authenticationEntryPoint(AdminAuthenticationEntryPoint));
 
-		http
-				.addFilterBefore(loggingFilter, HeaderWriterFilter.class);
-
 		return http.build();
 	}
 
@@ -145,8 +139,7 @@ public class SecurityConfig {
 		http
 				.addFilterBefore(new LoginFilter("/member/login", authenticationManager, jwtUtil), UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(new AccessTokenFilter(jwtUtil), LoginFilter.class)
-				.addFilterBefore(new RefreshTokenFilter("/member/jwt", jwtUtil), LoginFilter.class)
-				.addFilterBefore(loggingFilter, HeaderWriterFilter.class);
+				.addFilterBefore(new RefreshTokenFilter("/member/jwt", jwtUtil), LoginFilter.class);
 
 		return http.build();
 	}
