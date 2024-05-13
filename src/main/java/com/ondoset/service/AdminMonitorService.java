@@ -3,8 +3,8 @@ package com.ondoset.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.ondoset.common.Ai;
-import com.ondoset.common.Kma;
 import com.ondoset.common.LogEntity;
 import com.ondoset.dto.admin.monitor.ActiveUserDTO;
 import com.ondoset.dto.admin.monitor.LogDTO;
@@ -19,16 +19,14 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -91,7 +89,8 @@ public class AdminMonitorService {
 			// Location stack의 가장 위 값만 전송
 			Gson gson = new Gson();
 			String location = l.getLocation();
-			List<String> locationList = gson.fromJson(location, List.class);
+			Type type = new TypeToken<List<String>>(){}.getType();
+			List<String> locationList = gson.fromJson(location, type);
 			if (location.equals("[]")) {
 				logDTO.setLocation("springframework");
 			} else {

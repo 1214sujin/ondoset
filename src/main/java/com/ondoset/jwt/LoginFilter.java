@@ -2,6 +2,7 @@ package com.ondoset.jwt;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
 import com.ondoset.dto.member.LoginDTO;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.util.Map;
 
 @Log4j2
@@ -42,7 +44,8 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 			return null;
 		}
 
-		Map<String, String> parameter = gson.fromJson(new InputStreamReader(request.getInputStream()), Map.class);
+		Type type = new TypeToken<Map<String, String>>(){}.getType();
+		Map<String, String> parameter = gson.fromJson(new InputStreamReader(request.getInputStream()), type);
 
 		String name = parameter.get("username");
 		String password = parameter.get("password");
