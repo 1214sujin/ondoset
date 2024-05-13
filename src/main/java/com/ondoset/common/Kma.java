@@ -406,6 +406,7 @@ public class Kma {
 			}
 		}
 
+		double tmpLoggerSum = 0.0;	// 현재 시각-24시의 평균 기온을 로깅하기 위함
 		result.setFcst(new ArrayList<>());
 
 		for (Integer fcstTime : fcstRes.keySet()) {
@@ -422,10 +423,14 @@ public class Kma {
 				};
 			};
 			long tmp = Long.parseLong(fcstRes.get(fcstTime).get("tmp"));
+			tmpLoggerSum += tmp;
 			int pop = Integer.parseInt(fcstRes.get(fcstTime).get("pop"));
 
 			result.getFcst().add(new FcstDTO(fcstTime, tmp, pop, weather));
 		}
+
+		// 현재 시각-24시의 평균 기온을 로깅
+		log.info("tempAvg = {}", tmpLoggerSum / fcstRes.keySet().size());
 
 		// 현재 날씨를 획득
 		NowWDTO nowW = getNowW(lat, lon, x, y);
@@ -488,6 +493,7 @@ public class Kma {
 
 		result.setFcst(new ArrayList<>());
 
+		double tmpLoggerSum = 0.0;	// 평균 기온을 로깅하기 위함
 		double tmpSum = 0.0;
 		// 순서대로 SLEET, RAINNY, SNOWY, PARTLY_CLOUDY, CLOUDY, SUNNY
 		int[] weatherCount = {0, 0, 0, 0, 0, 0};
@@ -526,6 +532,7 @@ public class Kma {
 				};
 			};
 			long tmp = Long.parseLong(fcstRes.get(fcstTime).get("tmp"));
+			tmpLoggerSum += tmp;
 			int pop = Integer.parseInt(fcstRes.get(fcstTime).get("pop"));
 
 			result.getFcst().add(new FcstDTO(fcstTime, tmp, pop, weather));	// 예보
@@ -542,6 +549,9 @@ public class Kma {
 				}
 			}
 		}
+
+		// 평균 기온을 로깅
+		log.info("tempAvg = {}", tmpLoggerSum / 24);
 
 		// 평균 기온 및 체감온도
 		double tmpAvg = (Math.round(tmpSum / 13 * 10)) / 10.0;
