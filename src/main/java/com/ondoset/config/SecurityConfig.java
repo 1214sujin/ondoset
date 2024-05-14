@@ -102,7 +102,16 @@ public class SecurityConfig {
 						.permitAll());
 
 		http	// 로그아웃 설정
-				.logout((auth) -> auth.logoutUrl("/admin/auth/logout"));
+				.logout((auth) -> auth
+						.logoutUrl("/admin/auth/logout")
+						.logoutSuccessHandler((httpServletRequest, response, authentication) -> {
+							response.setContentType("application/json");
+							response.setCharacterEncoding("utf-8");
+
+							ResponseMessage<String> message = new ResponseMessage<>(ResponseCode.COM2000, "로그아웃 성공");
+							String result = new GsonBuilder().serializeNulls().create().toJson(message);
+							response.getWriter().write(result);
+						}));
 
 		http	// 미인증 사용자 접속 시
 				.exceptionHandling(auth ->
