@@ -114,9 +114,16 @@ public class Ai {
 		// 로그를 조회하여 tempAvg를 획득
 		Double tempAvg = logRepository.findTempAvgByUser(member.getName());
 
+		List<Long> tagList = new ArrayList<>();
+		List<String> thicknessList = new ArrayList<>();
+		for (FullTagDTO fullTag : fullTagList) {
+			tagList.add(fullTag.getTagId());
+			thicknessList.add(fullTag.getThickness());
+		}
+
 		// 문자열로 받음
-		String satisfaction = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "satisfaction.py"), member.getId().toString(), tempAvg.toString(), "[2, 3, 5]");
-		Satisfaction res = Satisfaction.valueOfLower(satisfaction);
+		String satisfaction = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "satisfaction.py"), member.getId().toString(), tempAvg.toString(), tagList.toString(), thicknessList.toString());
+		Satisfaction res = Satisfaction.valueOfLower(satisfaction.trim());
 		if (res.equals(Satisfaction.VERY_COLD)) res = Satisfaction.COLD;
 		else if (res.equals(Satisfaction.VERY_HOT)) res = Satisfaction.HOT;
 
