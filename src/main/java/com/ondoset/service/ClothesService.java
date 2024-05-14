@@ -63,10 +63,10 @@ public class ClothesService {
 		planCoordiOptional.ifPresent(coordi -> res.setPlan(getPlan(coordi)));
 
 		// HomeDTO.res.record 획득
-		res.setRecord(getRecord(member, ai.getSimilarDate(lat, lon, date)));
+		res.setRecord(getRecord(member, ai.getSimilarDate(member, lat, lon, date)));
 
 		// HomeDTO.res.recommend 획득
-		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), member)));
+		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), member.getId())));
 
 		// HomeDTO.res.ootd 획득
 		res.setOotd(getOotdPreview(ai.getSimilarUser(member.getId())));

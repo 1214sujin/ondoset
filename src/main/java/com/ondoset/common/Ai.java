@@ -15,9 +15,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -66,14 +68,45 @@ public class Ai {
 	}
 
 	// AI 추천 코디
-	public List<List<List<Long>>> getRecommend(Double tempAvg, Member member) {
+	public List<List<List<Long>>> getRecommend(Double tempAvg, Long memberId) {
 
-		//[[태그, 태그, 태그], [두께감, null, null]] * 3
-		// -1: THIN, 0: NORMAL, 1: THICK
-		String result = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "test.py"), member.getId().toString(), tempAvg.toString());
+		String tempRange;
+		if (tempAvg > 28.2) tempRange = "9";
+		else if (tempAvg > 23.2) tempRange = "8";
+		else if (tempAvg > 18.2) tempRange = "7";
+		else if (tempAvg > 13.2) tempRange = "6";
+		else if (tempAvg > 8.2) tempRange = "5";
+		else if (tempAvg > 3.2) tempRange = "4";
+		else if (tempAvg > -1.8) tempRange = "3";
+		else if (tempAvg > -6.8) tempRange = "2";
+		else if (tempAvg > -11.8) tempRange = "1";
+		else tempRange = "0";
+		log.debug("tempAvg = {}, tempRange = {}", tempAvg, tempRange);
 
-		Type type = new TypeToken<List<List<List<Long>>>>(){}.getType();
-		return gson.fromJson(result, type);
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_0.%s.txt", aiPath, memberId.toString(), tempRange)));
+			List<String> fileContent = new ArrayList<>();
+			String line;
+
+			while ((line = br.readLine()) != null) {
+				fileContent.add(line);
+			}
+			br.close();
+
+			List<List<List<Long>>> res = new ArrayList<>();
+			Type type = new TypeToken<List<Long>>(){}.getType();
+
+			int recommendCount = fileContent.size() / 2;
+			for (int i = 0; i < recommendCount; i++) {
+				res.add(Arrays.asList(gson.fromJson(fileContent.get(i), type), gson.fromJson(fileContent.get(recommendCount + i), type)));
+			}
+
+			return res;
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new CustomException(ResponseCode.COM5000);
+		}
 	}
 
 	// 만족도 예측
@@ -82,21 +115,31 @@ public class Ai {
 		// 로그를 조회하여 tempAvg를 획득
 		Double tempAvg = logRepository.findTempAvgByUser(member.getName());
 
-		return Satisfaction.GOOD;
+		// 문자열로 받음
+		String satisfaction = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "satisfaction.py"), member.getId().toString(), tempAvg.toString(), "[2, 3, 5]");
+		Satisfaction res = Satisfaction.valueOfLower(satisfaction);
+		if (res.equals(Satisfaction.VERY_COLD)) res = Satisfaction.COLD;
+		else if (res.equals(Satisfaction.VERY_HOT)) res = Satisfaction.HOT;
+
+		return res;
 	}
 
 	// 유사 사용자
 	public List<Long> getSimilarUser(Long memberId) {
 
+		String result = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "similar_user.py"), memberId.toString());
+
 		return Arrays.asList(2L, 3L);
 	}
 
 	// 날씨 비슷한 과거
-	public List<Long> getSimilarDate(Double lat, Double lon, Long date) {
+	public List<Long> getSimilarDate(Member member, Double lat, Double lon, Long date) {
 
 		Map<String, String> xy = kma.getXY(lat, lon);
 		String x = xy.get("x");
 		String y = xy.get("y");
+
+		String result = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "climate.py"), member.getId().toString(), x, y, date.toString());
 
 		return Arrays.asList(1713193200L, 1713279600L, 1713366000L, 1713452400L);
 	}
