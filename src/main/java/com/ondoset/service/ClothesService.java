@@ -63,7 +63,7 @@ public class ClothesService {
 		planCoordiOptional.ifPresent(coordi -> res.setPlan(getPlan(coordi)));
 
 		// HomeDTO.res.record 획득
-		res.setRecord(getRecord(member, ai.getSimilarDate(member, lat, lon, date)));
+		res.setRecord(getRecord(member, ai.getSimilarDate(member, lat, lon, date), (Double) forecast.get("tempAvg")));
 
 		// HomeDTO.res.recommend 획득
 		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), member.getId())));
@@ -91,16 +91,23 @@ public class ClothesService {
 		}
 		return plan;
 	}
-	private List<RecordDTO> getRecord(Member member, List<Long> dateList) {
+	private List<RecordDTO> getRecord(Member member, List<Long> dateList, Double tempAvg) {
 
-		// 받은 date list 중 외출 정보가 없는 것은 포함하지 않음
 		List<RecordDTO> record = new ArrayList<>();
 		for (Long date : dateList) {
 
 			Optional<Coordi> coordiOptional = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
 			if (coordiOptional.isPresent() && coordiOptional.get().getDepartTime()!=null) {
 
-				List<Consisting> consistingList = coordiOptional.get().getConsistings();
+				// 평균 기온을 비교하여 적절한 응답인지 확인
+				Coordi coordi = coordiOptional.get();
+				double diff = (Double.valueOf(coordi.getHighestTemp()) + Double.valueOf(coordi.getLowestTemp())) / 2 - tempAvg;
+				log.debug(diff);
+				if (diff > 5 || diff < -5) {
+					continue;
+				}
+
+				List<Consisting> consistingList = coordi.getConsistings();
 
 				RecordDTO r = new RecordDTO();
 				r.setDate(date);
@@ -124,8 +131,6 @@ public class ClothesService {
 				r.setClothesList(clothesList);
 
 				record.add(r);
-				// 최대 3개까지만 받음
-				if (record.size() >= 3) break;
 			}
 		}
 		return record;
