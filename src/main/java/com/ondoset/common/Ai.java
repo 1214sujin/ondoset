@@ -81,7 +81,6 @@ public class Ai {
 		else if (tempAvg > -6.8) tempRange = "2";
 		else if (tempAvg > -11.8) tempRange = "1";
 		else tempRange = "0";
-		log.debug("tempAvg = {}, tempRange = {}", tempAvg, tempRange);
 
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_0.%s.txt", aiPath, memberId.toString(), tempRange)));
@@ -129,7 +128,9 @@ public class Ai {
 
 		String result = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "similar_user.py"), memberId.toString());
 
-		return Arrays.asList(2L, 3L);
+		Type type = new TypeToken<List<Long>>(){}.getType();
+
+		return gson.fromJson(result, type);
 	}
 
 	// 날씨 비슷한 과거
@@ -141,6 +142,8 @@ public class Ai {
 
 		String result = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "climate.py"), member.getId().toString(), x, y, date.toString());
 
-		return Arrays.asList(1713193200L, 1713279600L, 1713366000L, 1713452400L);
+		Type type = new TypeToken<List<Long>>(){}.getType();
+
+		return gson.fromJson(result, type);
 	}
 }

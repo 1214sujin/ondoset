@@ -50,7 +50,7 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 		String name = parameter.get("username");
 		String password = parameter.get("password");
 
-		log.info("username = {}", name);
+		log.info("member logged in. username = {}", name);
 
 		if (name.equals("") || password.equals("")) {
 			new TokenException(ResponseCode.COM4000).sendResponseError(response);

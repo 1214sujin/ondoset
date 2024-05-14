@@ -63,7 +63,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 				requestLog.append("\n").append(key).append(" = ").append(jsonNode.get(key));
 			}
 		}
-		log.info("{}", requestLog.append("\n").toString());
+		log.debug("{}", requestLog.append("\n").toString());
 		ThreadContext.pop();	// 위에서 push한 NDC를 제거
 		ThreadContext.clearAll();
 	}

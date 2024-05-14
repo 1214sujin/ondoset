@@ -48,7 +48,6 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 
 		// 토큰에서 username 획득. 리포지토리에 접근하지 않음
 		String name = jwtUtil.getName(token);
-		log.info(name);
 
 		Member member = new Member();
 		member.setName(name);

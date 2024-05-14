@@ -94,13 +94,13 @@ public class MemberService {
 			throw new CustomException(ResponseCode.COM4090);
 		}
 
-		log.info("new member is registered. username: {}", name);
+		log.info("new member is registered. username = {}", name);
 	}
 
 	public void postOnBoarding(OnBoardingDTO req) {
 
-		String memberId = SecurityContextHolder.getContext().getAuthentication().getName();
-		Member member = memberRepository.findByName(memberId);
+		String name = SecurityContextHolder.getContext().getAuthentication().getName();
+		Member member = memberRepository.findByName(name);
 
 		if (member.getOnBoarding() != null) {
 			throw new CustomException(ResponseCode.COM4090);
@@ -129,7 +129,7 @@ public class MemberService {
 
 			member.setOnBoarding(data);
 			memberRepository.save(member);
-			log.info("onBoarding data saved. username: {}", memberId);
+			log.info("onBoarding data saved. username = {}", name);
 		}
 	}
 
