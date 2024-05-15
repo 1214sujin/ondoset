@@ -14,8 +14,8 @@ public class ConnectionFactory {
 			dataSource = new BasicDataSource();
 			dataSource.setUrl("jdbc:mysql://localhost:3306/db24119?serverTimezone=Asia/Seoul");
 			dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-			dataSource.setUsername("root");
-			dataSource.setPassword("root");
+			dataSource.setUsername("dbid241");
+			dataSource.setPassword("dbpass241");
 		}
 		return dataSource.getConnection();
 	}

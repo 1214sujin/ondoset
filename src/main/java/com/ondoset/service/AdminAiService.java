@@ -30,7 +30,7 @@ public class AdminAiService {
     private final MetricsRepository metricsRepository;
 
     @Value("${com.ondoset.ai.path}")
-	private String scriptPath;
+    private String scriptPath;
 
     // 적용된 모델의 정보를 확인
     public GetAdaptModelDTO getAdaptModel() {
@@ -54,7 +54,7 @@ public class AdminAiService {
         Long modelId = selectModelDTO.getModelId();
         // 모델을 찾아서 adapt를 true로 변경
         Model model = modelRepository.findById(modelId).orElseThrow(() -> new IllegalArgumentException("모델이 존재하지 않습니다."));
-        String script = "prediction.py";
+        String script = "/prediction.py";
         StringBuilder result = new StringBuilder();
         String lvc = Integer.toString(model.getNumFeatures());
         String cfIter = Integer.toString(model.getIterations());
@@ -63,7 +63,7 @@ public class AdminAiService {
         String cfW = Double.toString(model.getCountWeight());
         log.info( System.getProperty("user.dir"));
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder("python3", scriptPath + script, lvc, cfIter, cfLr, cfReg, cfW);
+            ProcessBuilder processBuilder = new ProcessBuilder("python", scriptPath + script, lvc, cfIter, cfLr, cfReg, cfW);
             Process process = processBuilder.start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -118,7 +118,7 @@ public class AdminAiService {
         log.info("trainModel");
         Model lastModel = modelRepository.findFirstByOrderByModelVersionDesc();
         log.info(String.valueOf(trainModelReqDTO.getLvc()), trainModelReqDTO.getCfIter(), trainModelReqDTO.getCfLr(), trainModelReqDTO.getCfReg(), trainModelReqDTO.getCfW());
-        String script = "train.py";
+        String script = "/train.py";
 
         StringBuilder result = new StringBuilder();
         StringBuilder errorResult = new StringBuilder();
@@ -135,8 +135,9 @@ public class AdminAiService {
         String cfReg = Double.toString(trainModelReqDTO.getCfReg());
         String cfW = Double.toString(trainModelReqDTO.getCfW());
         log.info(lvc, cfIter, cfLr, cfReg, cfW);
+
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder("python3", scriptPath + script, version,  lvc, cfIter, cfLr, cfReg, cfW);
+            ProcessBuilder processBuilder = new ProcessBuilder("python", scriptPath + script, version, lvc, cfIter, cfLr, cfReg, cfW);
             Process process = processBuilder.start();
 
             BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -187,6 +188,10 @@ public class AdminAiService {
         newModel.setLearningRate(trainModelReqDTO.getCfLr());
         newModel.setLambda(trainModelReqDTO.getCfReg());
         newModel.setCountWeight(trainModelReqDTO.getCfW());
+        newModel.setLoss(0);
+        newModel.setPrecisionK(0);
+        newModel.setRecallK(0);
+        newModel.setF1ScoreK(0);
         modelRepository.save(newModel);
 
         // 새로운 메트릭스 객체 생성 및 저장
@@ -204,7 +209,7 @@ public class AdminAiService {
 
     public void testModel(TestModelReqDTO testModelReqDTO) {
         Model model = modelRepository.findById(testModelReqDTO.getModelId()).orElseThrow(() -> new IllegalArgumentException("모델이 존재하지 않습니다."));
-        String script = "test.py";
+        String script = "/test.py";
 
         StringBuilder result = new StringBuilder();
         StringBuilder errorResult = new StringBuilder();
@@ -217,7 +222,7 @@ public class AdminAiService {
         String cfW = Double.toString(model.getCountWeight());
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder("python3", scriptPath + script, version, lvc, cfIter, cfLr, cfReg, cfW);
+            ProcessBuilder processBuilder = new ProcessBuilder("python", scriptPath + script, version, lvc, cfIter, cfLr, cfReg, cfW);
             Process process = processBuilder.start();
 
             BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
