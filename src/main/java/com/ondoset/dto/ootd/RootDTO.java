@@ -52,7 +52,7 @@ public class RootDTO {
 		private Integer highestTemp;
 		private MultipartFile image;
 		@Size(min=1)
-		private List<String> wearingList;
+		private String wearingList;
 	}
 
 	@Getter

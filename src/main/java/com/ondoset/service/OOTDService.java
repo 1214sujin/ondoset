@@ -1,4 +1,7 @@
 package com.ondoset.service;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.ondoset.common.Ai;
 import com.ondoset.common.Kma;
 import com.ondoset.controller.advice.CustomException;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -432,7 +436,8 @@ public class OOTDService {
 			wearingRepository.delete(wearing);
 		}
 		// wearing list 처리
-		List<String> reqWearingList = req.getWearingList();
+		Type type = new TypeToken<List<String>>(){}.getType();
+		List<String> reqWearingList = new Gson().fromJson(req.getWearingList(), type);
 		List<Wearing> wearingList = new ArrayList<>();
 		for (String wearing : reqWearingList) {
 
