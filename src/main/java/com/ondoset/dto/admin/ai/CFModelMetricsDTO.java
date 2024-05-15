@@ -13,6 +13,7 @@ public class CFModelMetricsDTO {
     private Long modelId;
     private Double version;
     private LocalDateTime date;
+    private double loss;
     private double precision;
     private double recall;
     private double f1;

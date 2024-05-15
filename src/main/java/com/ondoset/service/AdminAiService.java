@@ -94,7 +94,7 @@ public class AdminAiService {
         List<Model> models = modelRepository.findAll();
         List<CFModelMetricsDTO> cfModelMetricsDTOS = new ArrayList<>();
         for (Model model : models) {
-            CFModelMetricsDTO cfModelMetricsDTO = new CFModelMetricsDTO(model.getModelId(), model.getModelVersion(), model.getUpdated(), model.getPrecisionK(), model.getRecallK(), model.getF1ScoreK());
+            CFModelMetricsDTO cfModelMetricsDTO = new CFModelMetricsDTO(model.getModelId(), model.getModelVersion(), model.getUpdated(), model.getLoss(), model.getPrecisionK(), model.getRecallK(), model.getF1ScoreK());
             cfModelMetricsDTOS.add(cfModelMetricsDTO);
         }
         return new GetCFModelMetricsDTO(cfModelMetricsDTOS);
