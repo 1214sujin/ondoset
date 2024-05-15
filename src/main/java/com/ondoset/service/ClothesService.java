@@ -102,13 +102,13 @@ public class ClothesService {
 		List<RecordDTO> record = new ArrayList<>();
 		for (Long date : dateList) {
 
-			Optional<Coordi> coordiOptional = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
+			Optional<Coordi> coordiOptional = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date - 32400);
 			if (coordiOptional.isPresent() && coordiOptional.get().getDepartTime()!=null) {
 
 				// 평균 기온을 비교하여 적절한 응답인지 확인
 				Coordi coordi = coordiOptional.get();
 				double diff = (Double.valueOf(coordi.getHighestTemp()) + Double.valueOf(coordi.getLowestTemp())) / 2 - tempAvg;
-				log.debug(diff);
+				log.debug("plan of {} is not offered to member {} because diff is {}", date, member.getId(), diff);
 				if (diff > 5 || diff < -5) {
 					continue;
 				}
@@ -120,7 +120,7 @@ public class ClothesService {
 
 				List<ClothesDTO> clothesList = new ArrayList<>();
 				for (Consisting cs : consistingList) {
-					
+
 					Clothes c = cs.getClothes();
 
 					ClothesDTO clothes = new ClothesDTO();

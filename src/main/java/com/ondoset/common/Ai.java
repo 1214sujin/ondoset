@@ -19,6 +19,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,11 +34,11 @@ public class Ai {
 	private final Kma kma;
 	@Value("${com.ondoset.ai.path}")
 	private String aiPath;
-	@Value("{com.ondoset.pred.path}")
+	@Value("${com.ondoset.pred.path}")
 	private String predPath;
 	private final Gson gson = new GsonBuilder().serializeNulls().create();
 
-	private String pythonProcessExecutor(String... avg) {
+	private String pythonProcessExecutor(Boolean isList, String... avg) {
 
 		try {
 			Process process = new ProcessBuilder(avg).start();
@@ -46,8 +47,18 @@ public class Ai {
 			StringBuilder output = new StringBuilder();
 			String line;
 
-			while ((line = br.readLine()) != null) {
-				output.append(line).append("\n");
+			if (isList) {
+
+				while ((line = br.readLine()) != null) {
+					if (line.startsWith("[")) output.append(line).append("\n");
+					else log.debug(line);
+				}
+			} else {
+
+				while ((line = br.readLine()) != null) {
+					if (Character.isUpperCase(line.charAt(0))) output.append(line).append("\n");
+					else log.debug(line);
+				}
 			}
 
 			// 파이썬 실행 결과 오류가 존재할 경우
@@ -85,7 +96,7 @@ public class Ai {
 		else tempRange = "0";
 
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_0.%s.txt", predPath, memberId.toString(), tempRange)));
+			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, memberId.toString(), tempRange)));
 			List<String> fileContent = new ArrayList<>();
 			String line;
 
@@ -124,7 +135,7 @@ public class Ai {
 		}
 
 		// 문자열로 받음
-		String satisfaction = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "satisfaction.py"), member.getId().toString(), tempAvg.toString(), tagList.toString(), thicknessList.toString());
+		String satisfaction = pythonProcessExecutor(false, "python", String.format("%s/%s", aiPath, "satisfaction.py"), member.getId().toString(), tempAvg.toString(), tagList.toString(), thicknessList.toString());
 		Satisfaction res = Satisfaction.valueOfLower(satisfaction.trim());
 		if (res.equals(Satisfaction.VERY_COLD)) res = Satisfaction.COLD;
 		else if (res.equals(Satisfaction.VERY_HOT)) res = Satisfaction.HOT;
@@ -135,7 +146,7 @@ public class Ai {
 	// 유사 사용자
 	public List<Long> getSimilarUser(Long memberId) {
 
-		String result = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "similar_user.py"), memberId.toString());
+		String result = pythonProcessExecutor(true, "python", String.format("%s/%s", aiPath, "similar_user.py"), memberId.toString());
 
 		Type type = new TypeToken<List<Long>>(){}.getType();
 
@@ -149,7 +160,10 @@ public class Ai {
 		String x = xy.get("x");
 		String y = xy.get("y");
 
-		String result = pythonProcessExecutor("python", String.format("%s/%s", aiPath, "climate.py"), member.getId().toString(), x, y, date.toString());
+		long now = (Instant.now().getEpochSecond()+32400)/86400;
+		int timeFromToday = (int) ((date + 32400) / 86400 - now);
+
+		String result = pythonProcessExecutor(true, "python", String.format("%s/%s", aiPath, "climate.py"), member.getId().toString(), x, y, date.toString(), Integer.toString(timeFromToday));
 
 		Type type = new TypeToken<List<Long>>(){}.getType();
 
