@@ -93,6 +93,8 @@ public class ClothesService {
 			p.setTag(ct.getTag().getName());
 			p.setTagId(ct.getTag().getId());
 			p.setThickness(ct.getThickness());
+
+			plan.add(p);
 		}
 		return plan;
 	}
