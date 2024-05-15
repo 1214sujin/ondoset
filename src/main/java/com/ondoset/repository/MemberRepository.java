@@ -26,11 +26,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 			"select count(distinct member_id) " +
 			"from (select updated, member_id from clothes " +
 				"union select cs.updated, member_id from consisting cs join clothes ct " +
-				"union select cd.updated, member_id from coordi cd join consisting cs join clothes ct " +
-				"union select updated, member_id from ootd " +
-				"union select w.updated, member_id from wearing w join ootd o " +
-				"union select updated, follower as member_id from `following` " +
-				"union select updated, member_id from `like`) as s " +
+				"union select w.updated, member_id from wearing w join ootd o) as s " +
 			"where updated>=:startDate and updated<:endDate")
 	Long countActiveMember(@Param("startDate") String startDate, @Param("endDate") String endDate);
 }

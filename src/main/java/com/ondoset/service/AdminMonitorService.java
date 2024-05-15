@@ -125,7 +125,7 @@ public class AdminMonitorService {
 		LocalDateTime dateTime = LocalDateTime.now().plusDays(1);
 
 		List<ActiveUserDTO> res = new ArrayList<>();
-		for (long i = 0; i < 12; i++) {
+		for (long i = 0; i < 5; i++) {
 
 			Long period = dateTime.minusMonths(i+1).toLocalDate().toEpochDay() * 86400 - 32400;
 
