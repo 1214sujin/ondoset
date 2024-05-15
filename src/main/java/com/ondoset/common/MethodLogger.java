@@ -14,7 +14,6 @@ public class MethodLogger {
 	public Object execute(ProceedingJoinPoint joinPoint) throws Throwable {
 
 		ThreadContext.push(String.format("\"%s.%s\"", joinPoint.getSignature().getDeclaringType().getSimpleName(), joinPoint.getSignature().getName()));
-		System.out.println("joinPoint: " + joinPoint.getSignature().getDeclaringType().getSimpleName() + "." + joinPoint.getSignature().getName());
 
         Object result = joinPoint.proceed();
 

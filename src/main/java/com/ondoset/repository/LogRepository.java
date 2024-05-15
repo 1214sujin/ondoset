@@ -25,4 +25,9 @@ public interface LogRepository extends JpaRepository<LogEntity, Long> {
 	default Long countAi(Date date) {
 		return countByLevelAndMsgAndDateGreaterThan("INFO", "ai", date);
 	}
+
+	LogEntity findTop1ByUserAndMsgLikeOrderByIdDesc(String user, String msg);
+	default Double findTempAvgByUser(String user) {
+		return Double.valueOf(findTop1ByUserAndMsgLikeOrderByIdDesc(user, "tempAvg = %").getMsg().substring(10));
+	}
 }

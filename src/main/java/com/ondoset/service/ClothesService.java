@@ -1,4 +1,5 @@
 package com.ondoset.service;
+
 import com.ondoset.common.Ai;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
@@ -7,6 +8,7 @@ import com.ondoset.domain.Enum.Category;
 import com.ondoset.domain.Enum.Thickness;
 import com.ondoset.domain.Tag;
 import com.ondoset.dto.clothes.*;
+import com.ondoset.dto.kma.ForecastDTO;
 import com.ondoset.repository.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,29 +51,30 @@ public class ClothesService {
 		Double lat = req.getLat();
 		Double lon = req.getLon();
 
-		// HomeDTO.res.plan 획득
-		Optional<Coordi> planCoordiOptional = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
-		List<PlanDTO> plan = null;
-		if (planCoordiOptional.isPresent()) {
-			plan = getPlan(planCoordiOptional.get());
-		}
-
-		// HomeDTO.res.record 획득
-		List<Long> dateList = ai.getSimilarDate(date);
-
-		// HomeDTO.res.recommend 획득
-		List<List<List<Long>>> tagRecommendList = ai.getRecommend(member.getId());
-
-		// HomeDTO.res.ootd 획득
-		List<Long> similarUserList = ai.getSimilarUser(member.getId());
-
 		// 응답 정의
 		HomeDTO.res res = new HomeDTO.res();
-		res.setForecast(kma.getForecast(lat, lon, date));
-		res.setPlan(plan);
-		res.setRecord(getRecord(member, dateList));
-		res.setRecommend(getRecommend(tagRecommendList));
-		res.setOotd(getOotdPreview(similarUserList));
+
+		log.trace("kma.getForecast start");
+		// HomeDTO.res.forcast 획득 (recommend 획득 이전에 수행되어야 함)
+		Map<String, Object> forecast = kma.getForecast(lat, lon, date);
+		res.setForecast((ForecastDTO) forecast.get("result"));
+		log.trace("kma.getForecast end");
+
+		// HomeDTO.res.plan 획득
+		Optional<Coordi> planCoordiOptional = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
+		planCoordiOptional.ifPresent(coordi -> res.setPlan(getPlan(coordi)));
+
+		log.trace("ai.getSimilarDate start");
+		// HomeDTO.res.record 획득
+		res.setRecord(getRecord(member, ai.getSimilarDate(member, lat, lon, date), (Double) forecast.get("tempAvg")));
+
+		log.trace("ai.getRecommend start");
+		// HomeDTO.res.recommend 획득
+		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), member.getId())));
+
+		log.trace("ai.getSimilarUser start");
+		// HomeDTO.res.ootd 획득
+		res.setOotd(getOotdPreview(ai.getSimilarUser(member.getId())));
 
 		return res;
 	}
@@ -93,16 +96,24 @@ public class ClothesService {
 		}
 		return plan;
 	}
-	private List<RecordDTO> getRecord(Member member, List<Long> dateList) {
+	private List<RecordDTO> getRecord(Member member, List<Long> dateList, Double tempAvg) {
+		log.trace("ai.getSimilarDate end");
 
-		// 받은 date list 중 외출 정보가 없는 것은 포함하지 않음
 		List<RecordDTO> record = new ArrayList<>();
 		for (Long date : dateList) {
 
 			Optional<Coordi> coordiOptional = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
 			if (coordiOptional.isPresent() && coordiOptional.get().getDepartTime()!=null) {
 
-				List<Consisting> consistingList = coordiOptional.get().getConsistings();
+				// 평균 기온을 비교하여 적절한 응답인지 확인
+				Coordi coordi = coordiOptional.get();
+				double diff = (Double.valueOf(coordi.getHighestTemp()) + Double.valueOf(coordi.getLowestTemp())) / 2 - tempAvg;
+				log.debug(diff);
+				if (diff > 5 || diff < -5) {
+					continue;
+				}
+
+				List<Consisting> consistingList = coordi.getConsistings();
 
 				RecordDTO r = new RecordDTO();
 				r.setDate(date);
@@ -118,6 +129,7 @@ public class ClothesService {
 					clothes.setImageURL(c.getImageURL());
 					clothes.setCategory(c.getTag().getCategory());
 					clothes.setTag(c.getTag().getName());
+					clothes.setTagId(c.getTag().getId());
 					clothes.setThickness(c.getThickness());
 
 					clothesList.add(clothes);
@@ -125,13 +137,12 @@ public class ClothesService {
 				r.setClothesList(clothesList);
 
 				record.add(r);
-				// 최대 3개까지만 받음
-				if (record.size() >= 3) break;
 			}
 		}
 		return record;
 	}
 	private List<List<RecommendDTO>> getRecommend(List<List<List<Long>>> tagRecommendList) {
+		log.trace("ai.getRecommend end");
 
 		List<List<RecommendDTO>> recommend = new ArrayList<>();
 		for (List<List<Long>> tagRecommend : tagRecommendList) {
@@ -155,7 +166,7 @@ public class ClothesService {
 					r.setFullTag(tagName);
 				} else {
 					Long thicknessCode = tagRecommend.get(1).get(i);
-					Thickness thickness = thicknessCode == null ? Thickness.NORMAL : switch (thicknessCode.intValue()) {
+					Thickness thickness = switch (thicknessCode.intValue()) {
 						case -1 -> Thickness.THIN;
 						case 1 ->  Thickness.THICK;
 						default -> Thickness.NORMAL;
@@ -170,6 +181,7 @@ public class ClothesService {
 		return recommend;
 	}
 	private List<OotdShortDTO> getOotdPreview(List<Long> memberIdList) {
+		log.trace("ai.getSimilarUser end");
 
 		// 해당 memberId 목록에 속하는 ootd를 최신 3개만 획득
 		List<OOTD> ootdList = ootdRepository.findTop3ByMember_IdInOrderByIdDesc(memberIdList);
@@ -269,18 +281,21 @@ public class ClothesService {
 		return res;
 	}
 
-	public List<ClothesDTO> getSearch(Category category, String clothesName) {
+	public SearchNameDTO.res getSearch(Category category, String clothesName) {
 
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
 		// 전체 카테고리에 대한 조회인지 검사 및 분기 처리
-		List<ClothesDTO> res;
+		SearchNameDTO.res res = new SearchNameDTO.res();
+		List<ClothesDTO> clothesList;
 		if (category == null) {
-			res = clothesRepository.findBySearch(member, clothesName);
+			clothesList = clothesRepository.findBySearch(member, clothesName);
 		} else {
-			res = clothesRepository.findBySearch(member, category, clothesName);
+			clothesList = clothesRepository.findBySearch(member, category, clothesName);
 		}
+		res.setClothesList(clothesList);
+
 		return res;
 	}
 

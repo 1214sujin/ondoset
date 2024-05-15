@@ -1,4 +1,7 @@
 package com.ondoset.service;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.ondoset.common.Ai;
 import com.ondoset.common.Kma;
 import com.ondoset.controller.advice.CustomException;
@@ -19,8 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -254,6 +259,13 @@ public class OOTDService {
 		Long departTime = req.getDepartTime();
 		Long arrivalTime = req.getArrivalTime();
 
+		// 현재 시각이 대상 날짜가 지나지 않은 시점이라면 오류 반환
+		// 들어온 시간을 기준으로 오늘 날짜와 24시간 이상 차이나야 함
+		long now = Instant.now().getEpochSecond();
+		if ((now - ((arrivalTime+32400)/86400)*86400-32400) < 86400) {
+			throw new CustomException(ResponseCode.COM4000, "아직 등록할 수 없는 날짜입니다.");
+		}
+
 		if (arrivalTime < departTime) {
 			throw new CustomException(ResponseCode.COM4000, "등록하려는 날짜가 잘못되었습니다.");
 		}
@@ -266,8 +278,13 @@ public class OOTDService {
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
+		// 정지된 사용자인지 확인
+		LocalDate banPeriod = member.getBanPeriod();
+		if (banPeriod.compareTo(LocalDate.now()) > 0) throw new CustomException(ResponseCode.COM4030);
+
 		OOTD ootd = new OOTD();
 		ootd.setMember(member);
+		ootd.setRegion(req.getRegion());
 		ootd.setDepartTime(req.getDepartTime());
 		ootd.setArrivalTime(req.getArrivalTime());
 		ootd.setWeather(Weather.valueOfLower(req.getWeather()));
@@ -279,7 +296,7 @@ public class OOTDService {
 
 		// 기온 범위 처리
 		double tempAvg = ((double) lowestTemp + (double) highestTemp) / 2;
-		if (tempAvg < 5) ootd.setTempRate(TempRate.TElse);
+		if (tempAvg < 5) ootd.setTempRate(TempRate.TELSE);
 		else if (tempAvg < 9) ootd.setTempRate(TempRate.T5);
 		else if (tempAvg < 12) ootd.setTempRate(TempRate.T9);
 		else if (tempAvg < 17) ootd.setTempRate(TempRate.T12);
@@ -324,6 +341,40 @@ public class OOTDService {
 		return res;
 	}
 
+	public ModifyPageDTO getModifyPage(Long ootdId) {
+
+		// 현재 사용자 조회
+		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		if (!ootdRepository.existsByIdAndMember(ootdId, member)) {
+			throw new CustomException(ResponseCode.COM4010, "요청된 자원에 접근할 수 없는 계정입니다: " + member.getName());
+		}
+
+		// 요청된 ootd 엔티티 획득
+		OOTD ootd = ootdRepository.findById(ootdId).get();
+
+		ModifyPageDTO res = new ModifyPageDTO();
+		res.setOotdId(ootdId);
+		res.setRegion(ootd.getRegion());
+		res.setDepartTime(ootd.getDepartTime());
+		res.setArrivalTime(ootd.getArrivalTime());
+		res.setWeather(ootd.getWeather());
+		res.setLowestTemp(ootd.getLowestTemp());
+		res.setHighestTemp(ootd.getHighestTemp());
+		res.setImageURL(ootd.getImageURL());
+
+		// 입은 옷 정보
+		List<String> wearingList = new ArrayList<>();
+		for (Wearing wearing : ootd.getWearings()) {
+
+			wearingList.add(wearing.getName());
+		}
+
+		res.setWearingList(wearingList);
+
+		return res;
+	}
+
 	public RootDTO.res putRoot(Long ootdId, RootDTO.putReq req) {
 
 		// 현재 사용자 조회
@@ -338,6 +389,7 @@ public class OOTDService {
 
 		// ootd 엔티티 수정
 		ootd.setMember(member);
+		ootd.setRegion(req.getRegion());
 		ootd.setDepartTime(req.getDepartTime());
 		ootd.setArrivalTime(req.getArrivalTime());
 		ootd.setWeather(Weather.valueOfLower(req.getWeather()));
@@ -348,7 +400,7 @@ public class OOTDService {
 		ootd.setHighestTemp(highestTemp);
 		// 기온 범위 처리
 		double tempAvg = ((double) lowestTemp + (double) highestTemp) / 2;
-		if (tempAvg < 5) ootd.setTempRate(TempRate.TElse);
+		if (tempAvg < 5) ootd.setTempRate(TempRate.TELSE);
 		else if (tempAvg < 9) ootd.setTempRate(TempRate.T5);
 		else if (tempAvg < 12) ootd.setTempRate(TempRate.T9);
 		else if (tempAvg < 17) ootd.setTempRate(TempRate.T12);
@@ -384,7 +436,8 @@ public class OOTDService {
 			wearingRepository.delete(wearing);
 		}
 		// wearing list 처리
-		List<String> reqWearingList = req.getWearingList();
+		Type type = new TypeToken<List<String>>(){}.getType();
+		List<String> reqWearingList = new Gson().fromJson(req.getWearingList(), type);
 		List<Wearing> wearingList = new ArrayList<>();
 		for (String wearing : reqWearingList) {
 
@@ -548,6 +601,10 @@ public class OOTDService {
 
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+
+		// 정지된 사용자인지 확인
+		LocalDate banPeriod = member.getBanPeriod();
+		if (banPeriod.compareTo(LocalDate.now()) > 0) throw new CustomException(ResponseCode.COM4030);
 
 		// req 분해
 		Long ootdId = req.getOotdId();

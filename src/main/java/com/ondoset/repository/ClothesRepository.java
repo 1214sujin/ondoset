@@ -26,29 +26,29 @@ public interface ClothesRepository extends JpaRepository<Clothes, Long> {
 	@Query("select ct from Clothes ct where ct.member=:member and ct.isDeleted=false and ct.thickness is null and ct.tag=:tag")
 	List<Clothes> findByFullTag(@Param("member") Member member, @Param("tag") Tag tag);
 
-	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, ct.thickness)" +
+	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, t.id, ct.thickness)" +
 			"from Clothes ct join ct.tag t where ct.member=:member and ct.isDeleted=false order by ct.id desc limit 18")
 	List<ClothesDTO> pageAllClothes(@Param("member") Member member);
 
-	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, ct.thickness)" +
+	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, t.id, ct.thickness)" +
 			"from Clothes ct join ct.tag t where ct.member=:member and ct.isDeleted=false and ct.id<:lastPage order by ct.id desc limit 18")
 	List<ClothesDTO> pageAllClothes(@Param("member") Member member, @Param("lastPage") Long lastPage);
 
-	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, ct.thickness)" +
+	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, t.id, ct.thickness)" +
 			"from Clothes ct join ct.tag t where ct.member=:member and t.category=:category and ct.isDeleted=false order by ct.id desc limit 18")
 	List<ClothesDTO> pageAllClothes(@Param("member") Member member, @Param("category") Category category);
 
-	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, ct.thickness)" +
+	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, t.id, ct.thickness)" +
 			"from Clothes ct join ct.tag t where ct.member=:member and t.category=:category and ct.isDeleted=false and ct.id<:lastPage " +
 			"order by ct.id desc limit 18")
 	List<ClothesDTO> pageAllClothes(@Param("member") Member member, @Param("category") Category category, @Param("lastPage") Long lastPage);
 
-	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, ct.thickness) " +
+	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, t.id, ct.thickness) " +
 			"from Clothes ct join ct.tag t where ct.member=:member and t.category=:category and ct.isDeleted=false " +
 			"and ct.name like concat('%',:search,'%')")
 	List<ClothesDTO> findBySearch(@Param("member") Member member, @Param("category") Category category, @Param("search") String search);
 
-	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, ct.thickness) " +
+	@Query("select new com.ondoset.dto.clothes.ClothesDTO(ct.id, ct.name, ct.imageURL, t.category, t.name, t.id, ct.thickness) " +
 			"from Clothes ct join ct.tag t where ct.member=:member and ct.isDeleted=false " +
 			"and ct.name like concat('%',:search,'%')")
 	List<ClothesDTO> findBySearch(@Param("member") Member member, @Param("search") String search);

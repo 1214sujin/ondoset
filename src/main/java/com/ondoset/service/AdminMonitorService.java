@@ -3,8 +3,8 @@ package com.ondoset.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.ondoset.common.Ai;
-import com.ondoset.common.Kma;
 import com.ondoset.common.LogEntity;
 import com.ondoset.dto.admin.monitor.ActiveUserDTO;
 import com.ondoset.dto.admin.monitor.LogDTO;
@@ -19,25 +19,21 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
-@SuppressWarnings("ALL")
 @Log4j2
 @RequiredArgsConstructor
 @Service
 public class AdminMonitorService {
 
 	private final Ai ai;
-	private final Kma kma;
 	@Value("${com.ondoset.data.service_key}")
 	private String serviceKey;
 	private final TagRepository tagRepository;
@@ -93,7 +89,8 @@ public class AdminMonitorService {
 			// Location stack의 가장 위 값만 전송
 			Gson gson = new Gson();
 			String location = l.getLocation();
-			List<String> locationList = gson.fromJson(location, List.class);
+			Type type = new TypeToken<List<String>>(){}.getType();
+			List<String> locationList = gson.fromJson(location, type);
 			if (location.equals("[]")) {
 				logDTO.setLocation("springframework");
 			} else {
@@ -125,14 +122,14 @@ public class AdminMonitorService {
 		DateTimeFormatter sqlFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(TimeZone.getDefault().toZoneId());
 
 		// 서비스와 관련된 테이블에 대하여 최근 업데이트를 발생시킨 멤버 수를 달별로 획득;
-		LocalDateTime dateTime = LocalDateTime.now();
+		LocalDateTime dateTime = LocalDateTime.now().plusDays(1);
 
 		List<ActiveUserDTO> res = new ArrayList<>();
 		for (long i = 0; i < 12; i++) {
 
-			Long period = dateTime.minusMonths(i-1).toLocalDate().toEpochDay() * 86400 - 32400;
+			Long period = dateTime.minusMonths(i+1).toLocalDate().toEpochDay() * 86400 - 32400;
 
-			String startDate = dateTime.minusMonths(i-1).format(sqlFormatter);
+			String startDate = dateTime.minusMonths(i+1).format(sqlFormatter);
 			String endDate = dateTime.minusMonths(i).format(sqlFormatter);
 			Long count = memberRepository.countActiveMember(startDate, endDate);
 

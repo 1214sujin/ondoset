@@ -58,8 +58,14 @@ public class CoordiController {
 
 		Integer year = req.getYear();
 		Integer month = req.getMonth();
+		Integer day = req.getDay();
 
-		List<GetRootDTO.res> res = coordiService.getRoot(year, month);
+		List<GetRootDTO.res> res;
+		if (day == null) {
+			res = coordiService.getRoot(year, month);
+		} else {
+			res = coordiService.getRoot(year, month, day);
+		}
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}

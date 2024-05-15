@@ -11,6 +11,7 @@
             <Column name="date" isEventTimestamp="true"/>
             <Column name="level" pattern="%p"/>
             <Column name="location" pattern="%x"/>
+            <Column name="user" pattern="%X{user}"/>
             <Column name="msg" pattern="%m" isClob="true"/>
             <LevelRangeFilter maxLevel="info"/>
         </JDBC>
@@ -19,6 +20,7 @@
             <Column name="date" isEventTimestamp="true"/>
             <Column name="level" pattern="%p"/>
             <Column name="location" pattern="%x"/>
+            <Column name="user" pattern="%X{user}"/>
             <Column name="msg" pattern="%m" isClob="true"/>
             <LevelRangeFilter maxLevel="error"/>
         </JDBC>
@@ -34,6 +36,9 @@
         <logger name="com.ondoset" level="debug" additivity="false" >
             <AppenderRef ref="console" />
             <AppenderRef ref="dbInfo"/>
+        </logger>
+        <logger name="com.ondoset.OndosetApplication" level="info" additivity="false">
+            <AppenderRef ref="console"/>
         </logger>
     </Loggers>
 

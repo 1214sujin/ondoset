@@ -23,6 +23,9 @@ public class LogEntity {
 
 	private String location;
 
+	@Column(length = 15)
+	private String user;
+
 	@Lob
 	@Column(columnDefinition = "text")
 	private String msg;

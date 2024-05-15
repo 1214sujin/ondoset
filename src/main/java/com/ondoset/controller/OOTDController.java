@@ -91,6 +91,14 @@ public class OOTDController {
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}
 
+	@GetMapping("/modify-page/{ootdId}")
+	public ResponseEntity<ResponseMessage<ModifyPageDTO>> getModifyPage(@PathVariable("ootdId") Long ootdId) {
+
+		ModifyPageDTO res = ootdService.getModifyPage(ootdId);
+
+		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
+	}
+
 	@PutMapping("/{ootdId}")
 	public ResponseEntity<ResponseMessage<RootDTO.res>> putRoot(@PathVariable("ootdId") Long ootdId, @Valid RootDTO.putReq req) {
 
