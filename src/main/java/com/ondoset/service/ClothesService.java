@@ -54,20 +54,25 @@ public class ClothesService {
 		// 응답 정의
 		HomeDTO.res res = new HomeDTO.res();
 
+		log.trace("kma.getForecast start");
 		// HomeDTO.res.forcast 획득 (recommend 획득 이전에 수행되어야 함)
 		Map<String, Object> forecast = kma.getForecast(lat, lon, date);
 		res.setForecast((ForecastDTO) forecast.get("result"));
+		log.trace("kma.getForecast end");
 
 		// HomeDTO.res.plan 획득
 		Optional<Coordi> planCoordiOptional = coordiRepository.findByConsistings_Clothes_MemberAndDate(member, date);
 		planCoordiOptional.ifPresent(coordi -> res.setPlan(getPlan(coordi)));
 
+		log.trace("ai.getSimilarDate start");
 		// HomeDTO.res.record 획득
 		res.setRecord(getRecord(member, ai.getSimilarDate(member, lat, lon, date), (Double) forecast.get("tempAvg")));
 
+		log.trace("ai.getRecommend start");
 		// HomeDTO.res.recommend 획득
 		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), member.getId())));
 
+		log.trace("ai.getSimilarUser start");
 		// HomeDTO.res.ootd 획득
 		res.setOotd(getOotdPreview(ai.getSimilarUser(member.getId())));
 
@@ -92,6 +97,7 @@ public class ClothesService {
 		return plan;
 	}
 	private List<RecordDTO> getRecord(Member member, List<Long> dateList, Double tempAvg) {
+		log.trace("ai.getSimilarDate end");
 
 		List<RecordDTO> record = new ArrayList<>();
 		for (Long date : dateList) {
@@ -136,6 +142,7 @@ public class ClothesService {
 		return record;
 	}
 	private List<List<RecommendDTO>> getRecommend(List<List<List<Long>>> tagRecommendList) {
+		log.trace("ai.getRecommend end");
 
 		List<List<RecommendDTO>> recommend = new ArrayList<>();
 		for (List<List<Long>> tagRecommend : tagRecommendList) {
@@ -174,6 +181,7 @@ public class ClothesService {
 		return recommend;
 	}
 	private List<OotdShortDTO> getOotdPreview(List<Long> memberIdList) {
+		log.trace("ai.getSimilarUser end");
 
 		// 해당 memberId 목록에 속하는 ootd를 최신 3개만 획득
 		List<OOTD> ootdList = ootdRepository.findTop3ByMember_IdInOrderByIdDesc(memberIdList);

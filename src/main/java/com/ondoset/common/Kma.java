@@ -38,6 +38,7 @@ public class Kma {
 	private JsonArray getAPIRes(String reqUrl) {
 
 		JsonObject result;
+		log.debug("기상청에 요청된 URL = {}", reqUrl);
 		try {
 			URL url = new URL(reqUrl);
 			HttpURLConnection con;
@@ -76,6 +77,8 @@ public class Kma {
 
 		String reqUrl = String.format("https://apihub.kma.go.kr/api/typ01/url/stn_inf.php?inf=SFC&tm=%s&authKey=%s", time, authKey);
 
+		log.debug("기상청에 요청된 URL = {}", reqUrl);
+		log.trace("kma.getStn start");
 		//*********** stnId 받아오기 시작 ***********
 		try {
 			URL url = new URL(reqUrl);
@@ -112,6 +115,7 @@ public class Kma {
 			in.close();
 			con.disconnect();
 			//*********** stnId 받아오기 끝 ***********
+			log.trace("kma.getStn end");
 
 			return stn;
 		}
@@ -122,6 +126,7 @@ public class Kma {
 
 	/** 과거 날씨 조회 */
 	public PastWDTO getPastW(Double lat, Double lon, Long departTime, Long arrivalTime) {
+		log.trace("kma.getPastW start");
 
 		// 날짜를 API 요청 형식으로 변환
 		String departReqTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(departTime), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
@@ -132,7 +137,7 @@ public class Kma {
 
 		// 지상 관측 시간자료 API 요청
 		JsonArray items = getAPIRes(String.format("https://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList" +
-				"?numOfRows=48&pageNo=1&dataType=JSON&dataCd=ASOS&dateCd=HR&startDt=%s&startHh=%s&endDt=%s&endHh=%s&stnIds=%s&serviceKey=%s",
+						"?numOfRows=48&pageNo=1&dataType=JSON&dataCd=ASOS&dateCd=HR&startDt=%s&startHh=%s&endDt=%s&endHh=%s&stnIds=%s&serviceKey=%s",
 				departReqTime.substring(0, 8), departReqTime.substring(8, 10), arrivalReqTime.substring(0, 8), arrivalReqTime.substring(8, 10), stn, serviceKey));
 
 		int lowestTemp = 99;
@@ -188,14 +193,17 @@ public class Kma {
 		result.setHighestTemp(highestTemp);
 		result.setWeather(weather);
 
+		log.trace("kma.getPastW end");
 		return result;
 	}
 
 	// 위도/경도를 X/Y 격자로 변환
 	public Map<String, String> getXY(Double lat, Double lon) {
+		log.trace("kma.getXY start");
 
 		String reqUrl = String.format("https://apihub.kma.go.kr/api/typ01/cgi-bin/url/nph-dfs_xy_lonlat?lon=%f&lat=%f&help=0&authKey=%s", lon, lat, authKey);
 
+		log.debug("기상청에 요청된 URL = {}", reqUrl);
 		try {
 			URL url = new URL(reqUrl);
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -221,6 +229,7 @@ public class Kma {
 			result.put("x", x);
 			result.put("y", y);
 
+			log.trace("kma.getXY end");
 			return result;
 		}
 		catch (IOException e) {
@@ -230,6 +239,7 @@ public class Kma {
 
 	// 어제와의 기온 비교를 위해 과거 관측 값 획득 (getNowW에 포함)
 	private Double getLastW(Double lat, Double lon, Long todayDate) {
+		log.trace("kma.getLastW start");
 
 		// 날짜를 API 요청 형식으로 변환
 		String reqTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(todayDate).minusSeconds(86400), ZoneId.of("Asia/Seoul")).format(kmaFormatter);
@@ -247,6 +257,7 @@ public class Kma {
 			String ta = e.getAsJsonObject().get("ta").toString().replace("\"", "");
 			lastTemp = Double.parseDouble(ta);
 		}
+		log.trace("kma.getLastW end");
 		return lastTemp;
 	}
 
@@ -268,6 +279,7 @@ public class Kma {
 
 	// 요청 날짜의 날씨 획득
 	public Map<String, Object> getDayW(Double lat, Double lon, int timeFromToday, Long date) {
+		log.trace("kma.getDayW start");
 
 		long now = Instant.now().getEpochSecond();
 
@@ -298,19 +310,26 @@ public class Kma {
 			}
 		}
 
+		log.trace("kma.getVilageFcst start");
 		JsonArray items = getAPIRes(String.format("https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst" +
 				"?pageNo=1&numOfRows=%d&dataType=JSON&base_date=%s&base_time=%s&nx=%s&ny=%s" +
 				"&serviceKey=%s", numOfRows, time.substring(0, 8), String.format("%02d00", clock*3-1), x, y, serviceKey));
+		log.trace("kma.getVilageFcst end");
 
 		if (timeFromToday == 0) {
+			log.trace("kma.getDayW end");
+			log.trace("kma.getTodayW start");
 			return getTodayW(lat, lon, x, y, items, date);
 		} else {
+			log.trace("kma.getDayW end");
+			log.trace("kma.getLaterW start");
 			return getLaterW(items, date);
 		}
 	}
 
 	// 현재 날씨 획득 (getTodayW에 포함)
 	public NowWDTO getNowW(Double lat, Double lon, String x, String y) {
+		log.trace("kma.getNowW start");
 
 		long now = Instant.now().getEpochSecond();
 		String time;
@@ -330,7 +349,7 @@ public class Kma {
 
 		// 실황 확인
 		JsonArray ncstItems = getAPIRes(String.format("https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst" +
-				"?pageNo=1&numOfRows=8&dataType=JSON&base_date=%s&base_time=%s&nx=%s&ny=%s&serviceKey=%s",
+						"?pageNo=1&numOfRows=8&dataType=JSON&base_date=%s&base_time=%s&nx=%s&ny=%s&serviceKey=%s",
 				time.substring(0, 8), String.format("%02d00", clock), x, y, serviceKey));
 
 		Double tmp = null;
@@ -371,6 +390,7 @@ public class Kma {
 		clock = Integer.parseInt(time.substring(8,10))+1;
 		if (clock == 24) clock = 0;
 
+		log.trace("kma.getNowW end");
 		return new NowWDTO(tmp, diff, feel, weather, clock);
 	}
 
@@ -455,6 +475,7 @@ public class Kma {
 		res.put("result", result);
 		res.put("tempAvg", tmpLoggerAvg);
 
+		log.trace("kma.getTodayW end");
 		return res;
 	}
 
@@ -588,6 +609,7 @@ public class Kma {
 		res.put("result", result);
 		res.put("tempAvg", tmpLoggerAvg);
 
+		log.trace("kma.getLaterW end");
 		return res;
 	}
 
