@@ -33,6 +33,8 @@ public class Ai {
 	private final Kma kma;
 	@Value("${com.ondoset.ai.path}")
 	private String aiPath;
+	@Value("{com.ondoset.pred.path}")
+	private String predPath;
 	private final Gson gson = new GsonBuilder().serializeNulls().create();
 
 	private String pythonProcessExecutor(String... avg) {
@@ -83,7 +85,7 @@ public class Ai {
 		else tempRange = "0";
 
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_0.%s.txt", aiPath, memberId.toString(), tempRange)));
+			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_0.%s.txt", predPath, memberId.toString(), tempRange)));
 			List<String> fileContent = new ArrayList<>();
 			String line;
 

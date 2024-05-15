@@ -159,7 +159,7 @@ public class ClothesService {
 					r.setFullTag(tagName);
 				} else {
 					Long thicknessCode = tagRecommend.get(1).get(i);
-					Thickness thickness = thicknessCode == null ? Thickness.NORMAL : switch (thicknessCode.intValue()) {
+					Thickness thickness = switch (thicknessCode.intValue()) {
 						case -1 -> Thickness.THIN;
 						case 1 ->  Thickness.THICK;
 						default -> Thickness.NORMAL;
