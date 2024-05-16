@@ -44,7 +44,7 @@ public class AdminAiService {
         List<Model> models = modelRepository.findAll();
         List<ModelDTO> modelDTOS = new ArrayList<>();
         for (Model model : models) {
-            ModelDTO modelDTO = new ModelDTO(model.getModelId(), model.getModelVersion(), model.getUpdated().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() / 1000);
+            ModelDTO modelDTO = new ModelDTO(model.getModelId(), model.getModelVersion(), model.getUpdated());
             modelDTOS.add(modelDTO);
         }
         return new GetModelListDTO(modelDTOS);
