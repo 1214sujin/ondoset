@@ -30,7 +30,7 @@ public class AdminAiService {
     private final MetricsRepository metricsRepository;
 
     @Value("${com.ondoset.ai.path}")
-    private String scriptPath;
+	private String scriptPath;
 
     // 적용된 모델의 정보를 확인
     public GetAdaptModelDTO getAdaptModel() {
@@ -102,7 +102,7 @@ public class AdminAiService {
 
     public GetTrainResultDTO getTrainResult() {
         // adapt가 true인 모델을 찾음
-        Model model = modelRepository.findByAdaptTrue();
+        Model model = modelRepository.findFirstByOrderByModelVersionDesc();
         List<Metrics> metrics = metricsRepository.findByModelModelId(model.getModelId());
         GetTrainResultDTO trainResultDTO = new GetTrainResultDTO();
         List<OnEpochDTO> onEpochDTOS = new ArrayList<>();
@@ -188,10 +188,10 @@ public class AdminAiService {
         newModel.setLearningRate(trainModelReqDTO.getCfLr());
         newModel.setLambda(trainModelReqDTO.getCfReg());
         newModel.setCountWeight(trainModelReqDTO.getCfW());
-        newModel.setLoss(0);
-        newModel.setPrecisionK(0);
-        newModel.setRecallK(0);
-        newModel.setF1ScoreK(0);
+        newModel.setLoss(0.0);
+        newModel.setPrecisionK(0.0);
+        newModel.setRecallK(0.0);
+        newModel.setF1ScoreK(0.0);
         modelRepository.save(newModel);
 
         // 새로운 메트릭스 객체 생성 및 저장

@@ -12,5 +12,5 @@ import java.time.LocalDateTime;
 public class ModelDTO {
     private Long modelId;
     private Double version;
-    private Long date;
+    private LocalDateTime date;
 }
