@@ -398,7 +398,7 @@ public class CoordiService {
 		// 날씨를 조회하려면 등록하려는 날짜가 오늘 날짜와 24시간 이상 차이나야 함
 		Long arrivalTime = req.getArrivalTime();
 		long now = Instant.now().getEpochSecond();
-		if ((now - ((arrivalTime+32400)/86400)*86400-32400) >= 86400) {
+		if ((now - ((arrivalTime+32400)/86400)*86400-32400) < 86400) {
 			throw new CustomException(ResponseCode.COM4000, "아직 등록할 수 없는 날짜입니다.");
 		}
 		// departTime을 기준으로 한 날짜가 해당 coordi가 등록된 날짜와 다른 경우 오류 반환
