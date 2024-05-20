@@ -78,7 +78,7 @@ public class ClothesService {
 
 		return res;
 	}
-	private List<PlanDTO> getPlan(Coordi planCoordi) {
+	public List<PlanDTO> getPlan(Coordi planCoordi) {
 
 		List<PlanDTO> plan = new ArrayList<>();
 		for (Consisting cs : planCoordi.getConsistings()) {
@@ -98,7 +98,7 @@ public class ClothesService {
 		}
 		return plan;
 	}
-	private List<RecordDTO> getRecord(Member member, List<Long> dateList, Double tempAvg) {
+	public List<RecordDTO> getRecord(Member member, List<Long> dateList, Double tempAvg) {
 		log.trace("ai.getSimilarDate end");
 
 		List<RecordDTO> record = new ArrayList<>();
@@ -143,7 +143,7 @@ public class ClothesService {
 		}
 		return record;
 	}
-	private List<List<RecommendDTO>> getRecommend(List<List<List<Long>>> tagRecommendList) {
+	public List<List<RecommendDTO>> getRecommend(List<List<List<Long>>> tagRecommendList) {
 		log.trace("ai.getRecommend end");
 
 		List<List<RecommendDTO>> recommend = new ArrayList<>();
@@ -182,7 +182,7 @@ public class ClothesService {
 		}
 		return recommend;
 	}
-	private List<OotdShortDTO> getOotdPreview(List<Long> memberIdList) {
+	public List<OotdShortDTO> getOotdPreview(List<Long> memberIdList) {
 		log.trace("ai.getSimilarUser end");
 
 		// 해당 memberId 목록에 속하는 ootd를 최신 3개만 획득
