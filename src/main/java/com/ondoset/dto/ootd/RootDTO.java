@@ -31,7 +31,7 @@ public class RootDTO {
 		@NotNull
 		private MultipartFile image;
 		@Size(min=1)
-		private List<String> wearingList;
+		private String wearingList;
 	}
 
 	@Getter

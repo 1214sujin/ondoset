@@ -323,16 +323,17 @@ public class OOTDService {
 		Long insertId = ootdRepository.save(ootd).getId();
 
 		// wearing list 처리
-		List<String> reqWearingList = req.getWearingList();
-		List<Wearing> wearingsList = new ArrayList<>();
+		Type type = new TypeToken<List<String>>(){}.getType();
+		List<String> reqWearingList = new Gson().fromJson(req.getWearingList(), type);
+		List<Wearing> wearingList = new ArrayList<>();
 		for (String wearing : reqWearingList) {
 
 			Wearing newWearing = new Wearing();
 			newWearing.setOOTD(ootd);
 			newWearing.setName(wearing);
-			wearingsList.add(newWearing);
+			wearingList.add(newWearing);
 		}
-		wearingRepository.saveAll(wearingsList);
+		wearingRepository.saveAll(wearingList);
 
 		// 응답 정의
 		RootDTO.res res = new RootDTO.res();
