@@ -84,16 +84,16 @@ public class Ai {
 	public List<List<List<Long>>> getRecommend(Double tempAvg, Long memberId) {
 
 		String tempRange;
-		if (tempAvg > 28.2) tempRange = "9";
-		else if (tempAvg > 23.2) tempRange = "8";
-		else if (tempAvg > 18.2) tempRange = "7";
-		else if (tempAvg > 13.2) tempRange = "6";
-		else if (tempAvg > 8.2) tempRange = "5";
-		else if (tempAvg > 3.2) tempRange = "4";
-		else if (tempAvg > -1.8) tempRange = "3";
-		else if (tempAvg > -6.8) tempRange = "2";
-		else if (tempAvg > -11.8) tempRange = "1";
-		else tempRange = "0";
+		if (tempAvg > 28.2) tempRange = "10";
+		else if (tempAvg > 23.2) tempRange = "9";
+		else if (tempAvg > 18.2) tempRange = "8";
+		else if (tempAvg > 13.2) tempRange = "7";
+		else if (tempAvg > 8.2) tempRange = "6";
+		else if (tempAvg > 3.2) tempRange = "5";
+		else if (tempAvg > -1.8) tempRange = "4";
+		else if (tempAvg > -6.8) tempRange = "3";
+		else if (tempAvg > -11.8) tempRange = "2";
+		else tempRange = "1";
 
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, memberId.toString(), tempRange)));
