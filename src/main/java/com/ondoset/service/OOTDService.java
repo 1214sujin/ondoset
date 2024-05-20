@@ -137,18 +137,31 @@ public class OOTDService {
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
-		// ai로부터 현재 사용자와 비슷한 사용자의 목록 획득
-		List<Member> similarUserList = ai.getSimilarUser(member.getId()).stream().map(memberId ->
-				memberRepository.findById(memberId).get()).toList();
+		// 현재 사용자가 뉴비인지 확인
+		String reqId = ai.reqIdOf(member.getId());
 
-		// similarUserList에 속한 사용자들의 ootd를 최신순으로 획득
-		ootdRepository.pageLatest(similarUserList);
-
+		// ootd 목록 생성
 		List<OotdDTO> ootdList;
-		if (lastPage.equals(-1L)) {
-			ootdList = ootdRepository.pageLatest(similarUserList);
+		if (reqId.equals("0")) {
+
+			// ai로부터 현재 사용자와 비슷한 사용자의 목록 획득
+			List<Member> similarUserList = ai.getSimilarUser(member.getId()).stream().map(memberId ->
+					memberRepository.findById(memberId).get()).toList();
+
+			// similarUserList에 속한 사용자들의 ootd를 최신순으로 획득
+			if (lastPage.equals(-1L)) {
+				ootdList = ootdRepository.pageLatest(similarUserList);
+			} else {
+				ootdList = ootdRepository.pageLatest(similarUserList, lastPage);
+			}
 		} else {
-			ootdList = ootdRepository.pageLatest(similarUserList, lastPage);
+
+			// 전체 사용자를 대상으로 최신순 획득
+			if (lastPage.equals(-1L)) {
+				ootdList = ootdRepository.pageLatest();
+			} else {
+				ootdList = ootdRepository.pageLatest(lastPage);
+			}
 		}
 
 		OotdPageDTO res = new OotdPageDTO();

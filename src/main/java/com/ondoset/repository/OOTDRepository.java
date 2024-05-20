@@ -21,6 +21,8 @@ public interface OOTDRepository extends JpaRepository<OOTD, Long> {
 
 	List<OOTD> findTop3ByMember_IdInOrderByIdDesc(List<Long> memberIdList);
 
+	List<OOTD> findTop3ByOrderByIdDesc();
+
 	@Query("select o from OOTD o where o.reportedCount>0 and o.isBlinded=false")
 	List<OOTD> findByReportedCountGreaterThan();
 
@@ -47,6 +49,14 @@ public interface OOTDRepository extends JpaRepository<OOTD, Long> {
 	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o where o.member in (:memberList) and o.reportedCount<5 and o.isBlinded=false and o.id<:lastPage order by o.id desc limit 10")
 	List<OotdDTO> pageLatest(@Param("memberList") List<Member> memberList, @Param("lastPage") Long lastPage);
+
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+			"from OOTD o where o.reportedCount<5 and o.isBlinded=false order by o.id desc limit 10")
+	List<OotdDTO> pageLatest();
+
+	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
+			"from OOTD o where o.reportedCount<5 and o.isBlinded=false and o.id<:lastPage order by o.id desc limit 10")
+	List<OotdDTO> pageLatest(@Param("lastPage") Long lastPage);
 
 	@Query("select new com.ondoset.dto.ootd.OotdDTO(o.id, trunc((o.departTime+32400)/86400)*86400-32400 date, o.lowestTemp, o.highestTemp, o.imageURL) " +
 			"from OOTD o join o.likes l where l.member=:member and o.reportedCount<5 and o.isBlinded=false order by o.id desc limit 10")

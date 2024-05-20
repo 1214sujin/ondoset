@@ -74,9 +74,21 @@ public class Ai {
 			br.close();
 			process.destroy();
 
-			return output.toString();
+			return output.toString().trim();
 		} catch (IOException e) {
 			throw new CustomException(ResponseCode.COM5000);
+		}
+	}
+
+	public String reqIdOf(Long memberId) {
+
+		// 뉴비인지 확인
+		String isNewbie = pythonProcessExecutor(false, "python", String.format("%s/%s", aiPath, "is_new.py"), memberId.toString());
+
+		if (isNewbie.equals("NEW")) {
+			return "0";
+		} else {
+			return memberId.toString();
 		}
 	}
 
@@ -96,7 +108,7 @@ public class Ai {
 		else tempRange = "1";
 
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, memberId.toString(), tempRange)));
+			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, reqIdOf(memberId), tempRange)));
 			List<String> fileContent = new ArrayList<>();
 			String line;
 
@@ -135,8 +147,8 @@ public class Ai {
 		}
 
 		// 문자열로 받음
-		String satisfaction = pythonProcessExecutor(false, "python", String.format("%s/%s", aiPath, "satisfaction.py"), member.getId().toString(), tempAvg.toString(), tagList.toString(), thicknessList.toString());
-		Satisfaction res = Satisfaction.valueOfLower(satisfaction.trim());
+		String satisfaction = pythonProcessExecutor(false, "python", String.format("%s/%s", aiPath, "satisfaction.py"), reqIdOf(member.getId()), tempAvg.toString(), tagList.toString(), thicknessList.toString());
+		Satisfaction res = Satisfaction.valueOfLower(satisfaction);
 		if (res.equals(Satisfaction.VERY_COLD)) res = Satisfaction.COLD;
 		else if (res.equals(Satisfaction.VERY_HOT)) res = Satisfaction.HOT;
 
