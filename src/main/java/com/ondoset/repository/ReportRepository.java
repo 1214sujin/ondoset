@@ -17,7 +17,12 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
 	Boolean existsByReporterAndOotd(Member member, OOTD ootd);
 
-	@Query("select r.reason from Report r where r.ootd=:ootd")
+	List<Report> findByOotdAndIsProcessed(OOTD ootd, Boolean isProcessed);
+	default List<Report> findByOotdAndIsProcessedIsFalse(OOTD ootd) {
+		return findByOotdAndIsProcessed(ootd, false);
+	}
+
+	@Query("select r.reason from Report r where r.ootd=:ootd and r.isProcessed=false")
 	List<String> findReasonByOotd(@Param("ootd") OOTD ootd);
 
 	@Query("select new com.ondoset.dto.admin.blacklist.ReporterDTO(m.id, m.nickname, count(r)) " +

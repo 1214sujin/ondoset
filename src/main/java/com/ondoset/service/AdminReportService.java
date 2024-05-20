@@ -1,6 +1,7 @@
 package com.ondoset.service;
 
 import com.ondoset.domain.OOTD;
+import com.ondoset.domain.Report;
 import com.ondoset.dto.admin.report.ReportDTO;
 import com.ondoset.repository.OOTDRepository;
 import com.ondoset.repository.ReportRepository;
@@ -45,6 +46,11 @@ public class AdminReportService {
 		OOTD ootd = ootdRepository.findById(ootdId).get();
 
 		ootd.setReportedCount(0);
+
+		for (Report r : reportRepository.findByOotdAndIsProcessedIsFalse(ootd)) {
+			r.setIsProcessed(true);
+			reportRepository.save(r);
+		}
 
 		ootdRepository.save(ootd);
 	}
