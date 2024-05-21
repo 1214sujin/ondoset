@@ -52,20 +52,19 @@ public class AdminBlacklistService {
 		Member member = memberRepository.findById(req.getMemberId()).get();
 		Long reqLastPage = req.getLastPage();
 
-		List<Long> reportedOotdIdList;
+		List<OOTD> ootdList;
 		if (reqLastPage == -1) {
-			reportedOotdIdList = reportRepository.findReportingOotdList(member);
+			ootdList = reportRepository.findReportingOotdList(member);
 		} else {
-			reportedOotdIdList = reportRepository.findReportingOotdList(member, reqLastPage);
+			ootdList = reportRepository.findReportingOotdList(member, reqLastPage);
 		}
 
 		// wearing, reason 정보 전달
 		List<ReportedOotdDTO> reportedOotdList = new ArrayList<>();
-		for (Long reportingOotdId : reportedOotdIdList) {
+		for (OOTD ootd : ootdList) {
 
-			OOTD ootd = ootdRepository.findById(reportingOotdId).get();
 			ReportedOotdDTO reportedOotd = new ReportedOotdDTO();
-			reportedOotd.setOotdId(reportingOotdId);
+			reportedOotd.setOotdId(ootd.getId());
 			reportedOotd.setDate(((ootd.getDepartTime()+32400)/86400)*86400-32400);
 			reportedOotd.setWeather(ootd.getWeather());
 			reportedOotd.setLowestTemp(ootd.getLowestTemp());
@@ -82,10 +81,7 @@ public class AdminBlacklistService {
 
 			// 신고 사유
 			List<String> reasonList = new ArrayList<>();
-			for (Report r : reportRepository.findByOotd(ootd)) {
-
-				reasonList.add(r.getReason());
-			}
+			reasonList.add(reportRepository.findByReporterAndOotd(member, ootd).getReason());
 			reportedOotd.setReason(reasonList);
 
 			reportedOotdList.add(reportedOotd);
@@ -117,20 +113,19 @@ public class AdminBlacklistService {
 		Member member = memberRepository.findById(req.getMemberId()).get();
 		Long reqLastPage = req.getLastPage();
 
-		List<Long> reportedOotdIdList;
+		List<OOTD> ootdList;
 		if (reqLastPage == -1) {
-			reportedOotdIdList = reportRepository.findReportedOotdList(member);
+			ootdList = reportRepository.findReportedOotdList(member);
 		} else {
-			reportedOotdIdList = reportRepository.findReportedOotdList(member, reqLastPage);
+			ootdList = reportRepository.findReportedOotdList(member, reqLastPage);
 		}
 
 		// wearing, reason 정보 전달
 		List<ReportedOotdDTO> reportedOotdList = new ArrayList<>();
-		for (Long reportingOotdId : reportedOotdIdList) {
+		for (OOTD ootd : ootdList) {
 
-			OOTD ootd = ootdRepository.findById(reportingOotdId).get();
 			ReportedOotdDTO reportedOotd = new ReportedOotdDTO();
-			reportedOotd.setOotdId(reportingOotdId);
+			reportedOotd.setOotdId(ootd.getId());
 			reportedOotd.setDate(((ootd.getDepartTime()+32400)/86400)*86400-32400);
 			reportedOotd.setWeather(ootd.getWeather());
 			reportedOotd.setLowestTemp(ootd.getLowestTemp());

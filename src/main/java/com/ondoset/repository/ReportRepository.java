@@ -18,6 +18,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
 	List<Report> findByOotd(OOTD ootd);
 
+	Report findByReporterAndOotd(Member member, OOTD ootd);
+
 	List<Report> findByOotdAndIsProcessed(OOTD ootd, Boolean isProcessed);
 	default List<Report> findByOotdAndIsProcessedIsFalse(OOTD ootd) {
 		return findByOotdAndIsProcessed(ootd, false);
@@ -30,23 +32,23 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 			"from Report r join r.reporter m group by r.reporter")
 	List<ReporterDTO> findReporterList();
 
-	@Query("select distinct o.id " +
-			"from Report r join r.ootd o where r.reporter=:member order by r.id desc limit 10")
-	List<Long> findReportingOotdList(@Param("member") Member member);
+	@Query("select distinct o " +
+			"from Report r join r.ootd o where r.reporter=:member order by o.id desc limit 10")
+	List<OOTD> findReportingOotdList(@Param("member") Member member);
 
-	@Query("select distinct o.id " +
-			"from Report r join r.ootd o where r.reporter=:member and r.id<:lastPage order by r.id desc limit 10")
-	List<Long> findReportingOotdList(@Param("member") Member member, @Param("lastPage") Long lastPage);
+	@Query("select distinct o " +
+			"from Report r join r.ootd o where r.reporter=:member and o.id<:lastPage order by o.id desc limit 10")
+	List<OOTD> findReportingOotdList(@Param("member") Member member, @Param("lastPage") Long lastPage);
 
 	@Query("select new com.ondoset.dto.admin.blacklist.ReporterDTO(m.id, m.nickname, count(r)) " +
 			"from Report r join r.ootd o join o.member m group by o.member")
 	List<ReporterDTO> findReportedList();
 
-	@Query("select distinct o.id " +
-			"from Report r join r.ootd o where o.member=:member order by r.id desc limit 10")
-	List<Long> findReportedOotdList(@Param("member") Member member);
+	@Query("select distinct o " +
+			"from Report r join r.ootd o where o.member=:member order by o.id desc limit 10")
+	List<OOTD> findReportedOotdList(@Param("member") Member member);
 
-	@Query("select distinct o.id " +
-			"from Report r join r.ootd o where o.member=:member and r.id<:lastPage order by r.id desc limit 10")
-	List<Long> findReportedOotdList(@Param("member") Member member, @Param("lastPage") Long lastPage);
+	@Query("select distinct o " +
+			"from Report r join r.ootd o where o.member=:member and o.id<:lastPage order by o.id desc limit 10")
+	List<OOTD> findReportedOotdList(@Param("member") Member member, @Param("lastPage") Long lastPage);
 }
