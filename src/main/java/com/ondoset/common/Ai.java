@@ -9,6 +9,7 @@ import com.ondoset.domain.Enum.Satisfaction;
 import com.ondoset.domain.Member;
 import com.ondoset.dto.coordi.FullTagDTO;
 import com.ondoset.repository.LogRepository;
+import com.ondoset.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import java.util.Map;
 @Component
 public class Ai {
 
+	private final MemberRepository memberRepository;
 	private final LogRepository logRepository;
 	private final Kma kma;
 	@Value("${com.ondoset.ai.path}")
@@ -161,8 +163,11 @@ public class Ai {
 		String result = pythonProcessExecutor(true, "python", String.format("%s/%s", aiPath, "similar_user.py"), memberId.toString());
 
 		Type type = new TypeToken<List<Long>>(){}.getType();
+		List<Long> res = gson.fromJson(result, type);
 
-		return gson.fromJson(result, type);
+		res.removeIf(id -> !memberRepository.existsById(id));
+
+		return res;
 	}
 
 	// 날씨 비슷한 과거
