@@ -144,6 +144,14 @@ public class OOTDService {
 		List<OotdDTO> ootdList;
 		if (reqId.equals("0")) {
 
+			// 전체 사용자를 대상으로 최신순 획득
+			if (lastPage.equals(-1L)) {
+				ootdList = ootdRepository.pageLatest();
+			} else {
+				ootdList = ootdRepository.pageLatest(lastPage);
+			}
+		} else {
+
 			// ai로부터 현재 사용자와 비슷한 사용자의 목록 획득
 			List<Member> similarUserList = ai.getSimilarUser(member.getId()).stream().map(memberId ->
 					memberRepository.findById(memberId).get()).toList();
@@ -153,14 +161,6 @@ public class OOTDService {
 				ootdList = ootdRepository.pageLatest(similarUserList);
 			} else {
 				ootdList = ootdRepository.pageLatest(similarUserList, lastPage);
-			}
-		} else {
-
-			// 전체 사용자를 대상으로 최신순 획득
-			if (lastPage.equals(-1L)) {
-				ootdList = ootdRepository.pageLatest();
-			} else {
-				ootdList = ootdRepository.pageLatest(lastPage);
 			}
 		}
 
