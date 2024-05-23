@@ -68,18 +68,18 @@ public class ClothesService {
 		// HomeDTO.res.record 획득
 		res.setRecord(getRecord(member, ai.getSimilarDate(member, lat, lon, date), (Double) forecast.get("tempAvg")));
 
-		log.trace("ai.getRecommend start");
-		// HomeDTO.res.recommend 획득
-		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), member.getId())));
-
-		log.trace("ai.getSimilarUser start");
-		// HomeDTO.res.ootd 획득
-
 		// 현재 사용자가 뉴비인지 확인
 		String reqId = ai.reqIdOf(member.getId());
+
+		log.trace("ai.getRecommend start");
+		// HomeDTO.res.recommend 획득
+		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), reqId)));
+
+		// HomeDTO.res.ootd 획득
 		if (reqId.equals("0")) {
 			res.setOotd(getOotdPreview());
 		} else {
+			log.trace("ai.getSimilarUser start");
 			res.setOotd(getOotdPreview(ai.getSimilarUser(member.getId())));
 		}
 

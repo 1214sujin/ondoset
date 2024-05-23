@@ -95,7 +95,7 @@ public class Ai {
 	}
 
 	// AI 추천 코디
-	public List<List<List<Long>>> getRecommend(Double tempAvg, Long memberId) {
+	public List<List<List<Long>>> getRecommend(Double tempAvg, String reqId) {
 
 		String tempRange;
 		if (tempAvg > 28.2) tempRange = "10";
@@ -110,7 +110,7 @@ public class Ai {
 		else tempRange = "1";
 
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, reqIdOf(memberId), tempRange)));
+			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, reqId, tempRange)));
 			List<String> fileContent = new ArrayList<>();
 			String line;
 
