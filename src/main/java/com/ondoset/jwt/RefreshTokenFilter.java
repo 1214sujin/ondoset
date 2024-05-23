@@ -57,7 +57,7 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
 		try {
 			jwtUtil.validateBodyJwt(refreshToken);
 		} catch (TokenException e) {
-			log.error("Refresh Token 검증 오류: ", e);
+			log.warn("Refresh Token 검증 오류: ", e);
 			e.sendResponseError(response);
 			return;
 		}

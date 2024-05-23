@@ -26,7 +26,7 @@ public class TokenException extends RuntimeException {
 
 	public void sendResponseError(HttpServletResponse response) throws IOException {
 
-		log.error(this.getMessage());
+		log.warn(this.getMessage());
 
 		response.setStatus(tokenErrorCode.getStatus());
 
