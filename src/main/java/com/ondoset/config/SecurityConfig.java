@@ -6,6 +6,7 @@ import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
 import com.ondoset.jwt.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -46,7 +47,7 @@ public class SecurityConfig {
 
 		http	// 관리 URL 설정
 				.securityMatcher("/member/usable-id", "/member/usable-nickname", "/member/register",
-						"/error", "/images/**")
+						"/error", "/images/**", "/", "/index.html", "/static/**")
 				.authorizeHttpRequests((auth) -> auth
 						.anyRequest().permitAll())
 				.securityContext(AbstractHttpConfigurer::disable)
