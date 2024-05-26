@@ -23,6 +23,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Log4j2
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
@@ -78,7 +79,7 @@ public class SecurityConfig {
 				.httpBasic(Customizer.withDefaults());
 
 		http	// 로그인 설정
-				.formLogin((auth) -> auth.loginPage("/admin/auth.html")
+				.formLogin((auth) -> auth
 						.loginProcessingUrl("/admin/auth/login")
 						// 로그인 성공 시 핸들러
 						.successHandler((httpServletRequest, response, authentication) -> {
@@ -91,6 +92,7 @@ public class SecurityConfig {
 						})
 						// 로그인 실패 시 핸들러
 						.failureHandler((httpServletRequest, response, authentication) -> {
+							log.warn(ResponseCode.AUTH4010.getMessage());
 							response.setStatus(401);
 							response.setContentType("application/json");
 							response.setCharacterEncoding("utf-8");
@@ -141,7 +143,7 @@ public class SecurityConfig {
 
 		http	// 관리 URL 설정 (위에서 설정한 것 외 전체)
 				.authorizeHttpRequests((auth) -> auth
-				.anyRequest().authenticated());
+						.anyRequest().authenticated());
 
 		// jwt를 위한 필터 체인 정의 및 에러 처리
 		http

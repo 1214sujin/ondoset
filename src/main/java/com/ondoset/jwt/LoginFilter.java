@@ -96,6 +96,7 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 	@Override
 	protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException{
 
+		log.warn(ResponseCode.AUTH4010.getMessage());
 		response.setStatus(401);
 
 		// 응답 메시지 생성
