@@ -25,8 +25,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	@Query(nativeQuery = true, value =
 			"select count(distinct member_id) " +
 			"from (select updated, member_id from clothes " +
-				"union select cs.updated, member_id from consisting cs join clothes ct " +
-				"union select w.updated, member_id from wearing w join ootd o) as s " +
+				"union select cs.updated, member_id from consisting cs join clothes ct on cs.clothes_id=ct.clothes_id " +
+				"union select w.updated, member_id from wearing w join ootd o on w.ootd_id=o.ootd_id) as s " +
 			"where updated>=:startDate and updated<:endDate")
 	Long countActiveMember(@Param("startDate") String startDate, @Param("endDate") String endDate);
 }
