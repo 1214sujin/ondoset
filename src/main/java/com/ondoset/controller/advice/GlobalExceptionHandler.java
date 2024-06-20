@@ -21,7 +21,7 @@ import java.util.NoSuchElementException;
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler
-	public ResponseEntity<ResponseMessage<String>> HandelCustomException(CustomException e) {
+	public ResponseEntity<ResponseMessage<String>> HandleCustomException(CustomException e) {
 
 		ResponseCode responseCode = e.getResponseCode();
 

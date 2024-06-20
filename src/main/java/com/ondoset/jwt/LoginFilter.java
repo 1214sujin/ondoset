@@ -52,7 +52,8 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
 		log.info("member logged in. username = {}", name);
 
-		if (name.equals("") || password.equals("")) {
+		// 공백 검사
+		if (name.trim().equals("") || password.trim().equals("")) {
 			new TokenException(ResponseCode.COM4000).sendResponseError(response);
 			return null;
 		}
