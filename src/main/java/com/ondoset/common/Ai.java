@@ -38,6 +38,8 @@ public class Ai {
 	private String aiPath;
 	@Value("${com.ondoset.pred.path}")
 	private String predPath;
+	@Value("${com.ondoset.python.path}")
+	private String pythonPath;
 	private final Gson gson = new GsonBuilder().serializeNulls().create();
 
 	private String pythonProcessExecutor(Boolean isList, String... avg) {
@@ -85,7 +87,7 @@ public class Ai {
 	public String reqIdOf(Long memberId) {
 
 		// 뉴비인지 확인
-		String isNewbie = pythonProcessExecutor(false, "python", String.format("%s/%s", aiPath, "is_new.py"), memberId.toString());
+		String isNewbie = pythonProcessExecutor(false, pythonPath, String.format("%s/%s", aiPath, "is_new.py"), memberId.toString());
 
 		if (isNewbie.equals("NEW")) {
 			return "0";
@@ -149,7 +151,7 @@ public class Ai {
 		}
 
 		// 문자열로 받음
-		String satisfaction = pythonProcessExecutor(false, "python", String.format("%s/%s", aiPath, "satisfaction.py"), reqIdOf(member.getId()), tempAvg.toString(), tagList.toString(), thicknessList.toString());
+		String satisfaction = pythonProcessExecutor(false, pythonPath, String.format("%s/%s", aiPath, "satisfaction.py"), reqIdOf(member.getId()), tempAvg.toString(), tagList.toString(), thicknessList.toString());
 		Satisfaction res = Satisfaction.valueOfLower(satisfaction);
 		if (res.equals(Satisfaction.VERY_COLD)) res = Satisfaction.COLD;
 		else if (res.equals(Satisfaction.VERY_HOT)) res = Satisfaction.HOT;
@@ -160,7 +162,7 @@ public class Ai {
 	// 유사 사용자
 	public List<Long> getSimilarUser(Long memberId) {
 
-		String result = pythonProcessExecutor(true, "python", String.format("%s/%s", aiPath, "similar_user.py"), memberId.toString());
+		String result = pythonProcessExecutor(true, pythonPath, String.format("%s/%s", aiPath, "similar_user.py"), memberId.toString());
 
 		Type type = new TypeToken<List<Long>>(){}.getType();
 		List<Long> res = gson.fromJson(result, type);
@@ -180,7 +182,7 @@ public class Ai {
 		long now = (Instant.now().getEpochSecond()+32400)/86400;
 		int timeFromToday = (int) ((date + 32400) / 86400 - now);
 
-		String result = pythonProcessExecutor(true, "python", String.format("%s/%s", aiPath, "climate.py"), member.getId().toString(), x, y, date.toString(), Integer.toString(timeFromToday));
+		String result = pythonProcessExecutor(true, pythonPath, String.format("%s/%s", aiPath, "climate.py"), member.getId().toString(), x, y, date.toString(), Integer.toString(timeFromToday));
 
 		Type type = new TypeToken<List<Long>>(){}.getType();
 
