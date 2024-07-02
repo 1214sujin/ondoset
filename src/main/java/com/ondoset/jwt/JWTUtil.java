@@ -34,11 +34,6 @@ public class JWTUtil {
 		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("memberId", Long.class);
 	}
 
-	public Long getGapTime(String token) {
-		// 현재로부터 남은 시간(milliseconds)
-		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getExpiration().getTime() - new Date().getTime();
-	}
-
 	public String createJwt(String name, Long memberId, Long days) {
 
 		return Jwts.builder()

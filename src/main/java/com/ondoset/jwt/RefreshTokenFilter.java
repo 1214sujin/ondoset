@@ -66,12 +66,7 @@ public class RefreshTokenFilter extends OncePerRequestFilter {
 		Long memberId = jwtUtil.getMemberId(refreshToken);
 
 		String newAccessToken = jwtUtil.createJwt(name, memberId, 1L);
-		String newRefreshToken = null;
-
-		// refresh token의 만료일이 3일 미만으로 남은 경우 재발급
-		if (jwtUtil.getGapTime(refreshToken) < 1000 * 60 * 60 * 24 * 3) {	// 1000 * 60 * 10
-			newRefreshToken = jwtUtil.createJwt(name, memberId, 30L);
-		}
+		String newRefreshToken = jwtUtil.createJwt(name, memberId, 7L);
 
 		// 응답 메시지 생성
 		response.setContentType("application/json");

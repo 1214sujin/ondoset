@@ -76,7 +76,7 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 		Long memberId = customUserDetails.getMemberId();
 
 		String accessToken = jwtUtil.createJwt(name, memberId, 1L);
-		String refreshToken = jwtUtil.createJwt(name, memberId, 30L);
+		String refreshToken = jwtUtil.createJwt(name, memberId, 7L);
 
 		// 응답 메시지 생성
 		response.setContentType("application/json");
