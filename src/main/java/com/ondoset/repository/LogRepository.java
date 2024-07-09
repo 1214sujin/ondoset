@@ -1,6 +1,6 @@
 package com.ondoset.repository;
 
-import com.ondoset.common.LogEntity;
+import com.ondoset.config.LogEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

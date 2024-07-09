@@ -7,7 +7,7 @@
             <PatternLayout pattern="%d %5p %l - %m%n"/>
         </Console>
         <JDBC name="dbInfo" tableName="log">
-            <ConnectionFactory class="com.ondoset.common.ConnectionFactory" method="getConnection" />
+            <ConnectionFactory class="com.ondoset.config.ConnectionFactory" method="getConnection" />
             <Column name="date" isEventTimestamp="true"/>
             <Column name="level" pattern="%p"/>
             <Column name="location" pattern="%x"/>
@@ -16,7 +16,7 @@
             <LevelRangeFilter maxLevel="info"/>
         </JDBC>
         <JDBC name="dbError" tableName="log">
-            <ConnectionFactory class="com.ondoset.common.ConnectionFactory" method="getConnection" />
+            <ConnectionFactory class="com.ondoset.config.ConnectionFactory" method="getConnection" />
             <Column name="date" isEventTimestamp="true"/>
             <Column name="level" pattern="%p"/>
             <Column name="location" pattern="%x"/>

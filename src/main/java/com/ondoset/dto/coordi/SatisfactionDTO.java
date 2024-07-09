@@ -1,6 +1,6 @@
 package com.ondoset.dto.coordi;
 
-import com.ondoset.common.Enum;
+import com.ondoset.config.Enum;
 import com.ondoset.domain.Enum.Satisfaction;
 import lombok.Getter;
 import lombok.Setter;

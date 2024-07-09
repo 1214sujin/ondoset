@@ -1,14 +1,12 @@
 package com.ondoset.dto.ootd;
 
-import com.ondoset.common.Enum;
+import com.ondoset.config.Enum;
 import com.ondoset.domain.Enum.Weather;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 public class RootDTO {
 

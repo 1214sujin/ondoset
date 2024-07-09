@@ -1,4 +1,4 @@
-package com.ondoset.common;
+package com.ondoset.config;
 
 import org.apache.commons.dbcp2.*;
 import org.springframework.beans.factory.annotation.Value;

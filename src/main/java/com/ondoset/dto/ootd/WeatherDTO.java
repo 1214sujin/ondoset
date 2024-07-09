@@ -1,6 +1,6 @@
 package com.ondoset.dto.ootd;
 
-import com.ondoset.common.Enum;
+import com.ondoset.config.Enum;
 import com.ondoset.domain.Enum.TempRate;
 import com.ondoset.domain.Enum.Weather;
 import lombok.Getter;

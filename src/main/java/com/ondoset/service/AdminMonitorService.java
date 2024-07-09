@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.ondoset.common.Ai;
-import com.ondoset.common.LogEntity;
+import com.ondoset.config.LogEntity;
 import com.ondoset.dto.admin.monitor.ActiveUserDTO;
 import com.ondoset.dto.admin.monitor.LogDTO;
 import com.ondoset.dto.admin.monitor.RecordingPathDTO;

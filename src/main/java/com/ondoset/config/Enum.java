@@ -1,4 +1,4 @@
-package com.ondoset.common;
+package com.ondoset.config;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

@@ -1,6 +1,6 @@
 package com.ondoset.dto.admin.tag;
 
-import com.ondoset.common.Enum;
+import com.ondoset.config.Enum;
 import com.ondoset.domain.Enum.Category;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

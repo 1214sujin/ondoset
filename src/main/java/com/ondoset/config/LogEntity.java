@@ -1,4 +1,4 @@
-package com.ondoset.common;
+package com.ondoset.config;
 
 import jakarta.persistence.*;
 import lombok.Getter;
