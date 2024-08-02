@@ -68,20 +68,12 @@ public class ClothesService {
 		// HomeDTO.res.record 획득
 		res.setRecord(getRecord(member, ai.getSimilarDate(member, lat, lon, date), (Double) forecast.get("tempAvg")));
 
-		// 현재 사용자가 뉴비인지 확인
-		String reqId = ai.reqIdOf(member.getId());
-
 		log.trace("ai.getRecommend start");
 		// HomeDTO.res.recommend 획득
-		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), reqId)));
+		res.setRecommend(getRecommend(ai.getRecommend((Double) forecast.get("tempAvg"), member.getId())));
 
 		// HomeDTO.res.ootd 획득
-		if (reqId.equals("0")) {
-			res.setOotd(getOotdPreview());
-		} else {
-			log.trace("ai.getSimilarUser start");
-			res.setOotd(getOotdPreview(ai.getSimilarUser(member.getId())));
-		}
+		res.setOotd(getOotdPreview(ai.getSimilarUser(member.getId())));
 
 		return res;
 	}
@@ -190,25 +182,16 @@ public class ClothesService {
 		return recommend;
 	}
 	public List<OotdShortDTO> getOotdPreview(List<Long> memberIdList) {
-		log.trace("ai.getSimilarUser end");
 
-		// 해당 memberId 목록에 속하는 ootd를 최신 3개만 획득
-		List<OOTD> ootdList = ootdRepository.findTop3ByMember_IdInOrderByIdDesc(memberIdList);
-		List<OotdShortDTO> ootdPreview = new ArrayList<>();
-		for (OOTD o : ootdList) {
-
-			OotdShortDTO ootd = new OotdShortDTO();
-			ootd.setImageURL(o.getImageURL());
-			ootd.setDate(((o.getDepartTime()+32400)/86400)*86400-32400);
-			ootdPreview.add(ootd);
+		List<OOTD> ootdList;
+		if (memberIdList.isEmpty()) {
+			// 전체 ootd를 최신 3개만 획득
+			ootdList = ootdRepository.findTop3ByOrderByIdDesc();
+		} else {
+			// 해당 memberId 목록에 속하는 ootd를 최신 3개만 획득
+			ootdList = ootdRepository.findTop3ByMember_IdInOrderByIdDesc(memberIdList);
 		}
-		return ootdPreview;
-	}
-	public List<OotdShortDTO> getOotdPreview() {
-		log.trace("ai.getSimilarUser end");
 
-		// 전체 ootd를 최신 3개만 획득
-		List<OOTD> ootdList = ootdRepository.findTop3ByOrderByIdDesc();
 		List<OotdShortDTO> ootdPreview = new ArrayList<>();
 		for (OOTD o : ootdList) {
 

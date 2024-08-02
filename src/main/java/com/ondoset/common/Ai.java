@@ -84,7 +84,7 @@ public class Ai {
 		}
 	}
 
-	public String reqIdOf(Long memberId) {
+	private String reqIdOf(Long memberId) {
 
 		// 뉴비인지 확인
 		String isNewbie = pythonProcessExecutor(false, pythonPath, String.format("%s/%s", aiPath, "is_new.py"), memberId.toString());
@@ -97,7 +97,7 @@ public class Ai {
 	}
 
 	// AI 추천 코디
-	public List<List<List<Long>>> getRecommend(Double tempAvg, String reqId) {
+	public List<List<List<Long>>> getRecommend(Double tempAvg, Long memberId) {
 
 		String tempRange;
 		if (tempAvg > 28.2) tempRange = "10";
@@ -112,7 +112,7 @@ public class Ai {
 		else tempRange = "1";
 
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, reqId, tempRange)));
+			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, reqIdOf(memberId), tempRange)));
 			List<String> fileContent = new ArrayList<>();
 			String line;
 
@@ -161,6 +161,10 @@ public class Ai {
 
 	// 유사 사용자
 	public List<Long> getSimilarUser(Long memberId) {
+
+		if (reqIdOf(memberId).equals("0")) {
+			return new ArrayList<>();
+		}
 
 		String result = pythonProcessExecutor(true, pythonPath, String.format("%s/%s", aiPath, "similar_user.py"), memberId.toString());
 
