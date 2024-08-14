@@ -20,7 +20,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +32,6 @@ public class Ai {
 
 	private final MemberRepository memberRepository;
 	private final LogRepository logRepository;
-	private final Kma kma;
 	@Value("${com.ondoset.ai.path}")
 	private String aiPath;
 	@Value("${com.ondoset.pred.path}")
@@ -177,16 +175,13 @@ public class Ai {
 	}
 
 	// 날씨 비슷한 과거
-	public List<Long> getSimilarDate(Member member, Double lat, Double lon, Long date) {
+	public List<Long> getSimilarDate(Member member, Map<String, String> xy, Long nowTimestamp, Integer daysFromToday) {
 
-		Map<String, String> xy = kma.getXY(lat, lon);
 		String x = xy.get("x");
 		String y = xy.get("y");
 
-		long now = (Instant.now().getEpochSecond()+32400)/86400;
-		int timeFromToday = (int) ((date + 32400) / 86400 - now);
-
-		String result = pythonProcessExecutor(true, pythonPath, String.format("%s/%s", aiPath, "climate.py"), member.getId().toString(), x, y, date.toString(), Integer.toString(timeFromToday));
+		String result = pythonProcessExecutor(true, pythonPath, String.format("%s/%s", aiPath, "climate.py"),
+				member.getId().toString(), x, y, nowTimestamp.toString(), daysFromToday.toString());
 
 		Type type = new TypeToken<List<Long>>(){}.getType();
 

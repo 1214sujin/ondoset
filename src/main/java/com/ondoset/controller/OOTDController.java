@@ -2,7 +2,6 @@ package com.ondoset.controller;
 
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.controller.advice.ResponseMessage;
-import com.ondoset.dto.kma.PastWDTO;
 import com.ondoset.dto.ootd.*;
 import com.ondoset.service.OOTDService;
 import jakarta.validation.Valid;
@@ -76,9 +75,9 @@ public class OOTDController {
 	}
 
 	@GetMapping("/weather-preview")
-	public ResponseEntity<ResponseMessage<PastWDTO>> getWeatherPreview(@Valid WeatherPreviewDTO req) {
+	public ResponseEntity<ResponseMessage<WeatherPreviewDTO.res>> getWeatherPreview(@Valid WeatherPreviewDTO.req req) {
 
-		PastWDTO res = ootdService.getWeatherPreview(req);
+		WeatherPreviewDTO.res res = ootdService.getWeatherPreview(req);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}

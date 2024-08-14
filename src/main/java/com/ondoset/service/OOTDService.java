@@ -7,7 +7,6 @@ import com.ondoset.common.Kma;
 import com.ondoset.controller.advice.CustomException;
 import com.ondoset.controller.advice.ResponseCode;
 import com.ondoset.domain.*;
-import com.ondoset.dto.kma.PastWDTO;
 import com.ondoset.repository.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
@@ -139,12 +138,12 @@ public class OOTDService {
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
-		// 현재 사용자가 뉴비인지 확인
-		String reqId = ai.reqIdOf(member.getId());
+		// ai로부터 현재 사용자와 비슷한 사용자의 아이디 목록 획득
+		List<Long> memberIdList = ai.getSimilarUser(member.getId());
 
 		// ootd 목록 생성
 		List<OotdDTO> ootdList;
-		if (reqId.equals("0")) {
+		if (memberIdList.isEmpty()) {
 
 			// 전체 사용자를 대상으로 최신순 획득
 			if (lastPage.equals(-1L)) {
@@ -154,9 +153,10 @@ public class OOTDService {
 			}
 		} else {
 
-			// ai로부터 현재 사용자와 비슷한 사용자의 목록 획득
-			List<Member> similarUserList = ai.getSimilarUser(member.getId()).stream().map(memberId ->
-					memberRepository.findById(memberId).get()).toList();
+			// 현재 사용자와 비슷한 사용자의 목록 획득
+			List<Member> similarUserList = memberIdList.stream().map(memberId ->
+					memberRepository.findById(memberId).get()
+			).toList();
 
 			// similarUserList에 속한 사용자들의 ootd를 최신순으로 획득
 			if (lastPage.equals(-1L)) {
@@ -266,26 +266,25 @@ public class OOTDService {
 		return new BanPeriodDTO(res);
 	}
 
-	public PastWDTO getWeatherPreview(WeatherPreviewDTO req) {
+	public WeatherPreviewDTO.res getWeatherPreview(WeatherPreviewDTO.req req) {
 
 		// req 분해
 		Double lat = req.getLat();
 		Double lon = req.getLon();
-		Long departTime = req.getDepartTime();
-		Long arrivalTime = req.getArrivalTime();
+		LocalDateTime departTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(req.getDepartTime()), ZoneId.of("Asia/Seoul"));
+		LocalDateTime arrivalTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(req.getArrivalTime()), ZoneId.of("Asia/Seoul"));
 
 		// 날씨를 조회하려면 등록하려는 시간이 오늘 11시가 지난 시점에서 과거 날짜여야 함
-		Instant now = Instant.now();
-		long timeFromToday = ((now.getEpochSecond()+32400)/86400)*86400 - ((arrivalTime+32400)/86400)*86400;
-		if (timeFromToday < 0 || timeFromToday == 0 && LocalDateTime.ofInstant(now, ZoneId.of("Asia/Seoul")).getHour() < 11) {
-			throw new CustomException(ResponseCode.COM4000, "아직 등록할 수 없는 날짜입니다.");
-		}
+		LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+		if (!kma.canGetWthrData(now, arrivalTime)) throw new CustomException(ResponseCode.COM4000, "아직 등록할 수 없는 날짜입니다.");
 
-		if (arrivalTime < departTime) {
+		if (arrivalTime.isBefore(departTime)) {
 			throw new CustomException(ResponseCode.COM4000, "등록하려는 날짜가 잘못되었습니다.");
 		}
 
-		return kma.getPastW(lat, lon, departTime, arrivalTime);
+		return kma.getStn(lat, lon, now)
+				.thenCompose(stn -> kma.getWthrData(departTime, arrivalTime, stn))
+				.thenApply(kma::getWeatherPreviewFrom).join();
 	}
 
 	public RootDTO.res postRoot(RootDTO.req req) {

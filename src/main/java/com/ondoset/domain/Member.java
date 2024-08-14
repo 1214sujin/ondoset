@@ -38,6 +38,9 @@ public class Member extends BaseEntity {
 	@JoinColumn(name = "on_boarding_id")
 	private OnBoarding onBoarding;
 
+	// 최근 요청된 평균 기온
+	private Double recentReqTemp;
+
 	// 정지 기간
 	private LocalDate banPeriod;
 
