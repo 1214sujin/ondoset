@@ -138,8 +138,8 @@ public class Ai {
 	// 만족도 예측
 	public Satisfaction getSatisfaction(Member member, List<FullTagDTO> fullTagList) {
 
-		// 로그를 조회하여 tempAvg를 획득
-		Double tempAvg = logRepository.findTempAvgByUser(member.getName());
+		// 사용자가 최근에 받은 tempAvg를 획득
+		Double tempAvg = member.getRecentReqTemp();
 
 		List<Long> tagList = new ArrayList<>();
 		List<String> thicknessList = new ArrayList<>();
@@ -177,11 +177,8 @@ public class Ai {
 	// 날씨 비슷한 과거
 	public List<Long> getSimilarDate(Member member, Map<String, String> xy, Long nowTimestamp, Integer daysFromToday) {
 
-		String x = xy.get("x");
-		String y = xy.get("y");
-
 		String result = pythonProcessExecutor(true, pythonPath, String.format("%s/%s", aiPath, "climate.py"),
-				member.getId().toString(), x, y, nowTimestamp.toString(), daysFromToday.toString());
+				member.getId().toString(), xy.get("x"), xy.get("y"), nowTimestamp.toString(), daysFromToday.toString());
 
 		Type type = new TypeToken<List<Long>>(){}.getType();
 
