@@ -21,6 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -65,7 +66,7 @@ public class Kma {
 						item = objectMapper.readValue(objectMapper.writeValueAsString(item), typeReference);
 						return Mono.just(item);
 					} catch (JsonProcessingException e) {
-						return Mono.error(new CustomException(ResponseCode.COM5000, "라우팅 오류 발생"));
+						return Mono.error(new RuntimeException("JsonProcessingException: item 객체 추출 실패"));
 					}
 				})
 				.retryWhen(Retry.max(5)

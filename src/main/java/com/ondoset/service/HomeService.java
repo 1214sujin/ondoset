@@ -67,7 +67,7 @@ public class HomeService {
 		// 위경도_xy 전환 (kma)
 		CompletableFuture<Map<String, String>> xyFuture = kma.getXY(lat, lon)
 				.exceptionally(e -> {
-					log.debug("kma.getXY 에서 오류 발생");
+					log.debug("kma.getXY 에서 오류 발생: {}", e.getMessage());
 					throw new CustomException(ResponseCode.COM5000);
 				});
 
@@ -90,7 +90,7 @@ public class HomeService {
 					int clock = (TimeConstants.calcReqHour(now.toLocalTime(), 10) + 1) / 3;	// clock * 3 - 1 => base_time
 					// numOfRows에 따라 응답 시간이 달라지기 때문에, 경우에 따라 최소한의 rows만 요청한다.
 					int numOfRows;
-					switch ((clock + 1) / 3) {
+					switch (clock) {
 						case 0 -> {											// [00:10, 02:10)
 							clock = 8;
 							numOfRows = 290 + 290 * daysFromToday;
@@ -109,7 +109,7 @@ public class HomeService {
 					return kma.getVilageFcst(numOfRows, baseLocalDate, clock*3-1, xy);
 				}, threadPoolTaskExecutor)
 				.exceptionally(e -> {
-					log.debug("kma.getVilageFcst 에서 오류 발생");
+					log.debug("kma.getVilageFcst 에서 오류 발생: {}", e.getMessage());
 					throw new CustomException(ResponseCode.COM5000);
 				})
 				.thenApply(vilageFcstList -> {
@@ -125,7 +125,7 @@ public class HomeService {
 						return kma.parseLaterForecast(vilageFcstList, localDate);
 				})
 				.exceptionally(e -> {
-					log.debug("kma.parse_Forecast 에서 오류 발생");
+					log.debug("kma.parse_Forecast 에서 오류 발생: {}", e.getMessage());
 					throw new CustomException(ResponseCode.COM5000);
 				});
 
@@ -136,7 +136,7 @@ public class HomeService {
 					return ai.getSimilarDate(member, xy, nowTimestamp, daysFromToday);
 				}, threadPoolTaskExecutor)
 				.exceptionally(e -> {
-					log.debug("ai.getSimilarDate 에서 오류 발생");
+					log.debug("ai.getSimilarDate 에서 오류 발생: {}", e.getMessage());
 					throw new CustomException(ResponseCode.COM5000);
 				});
 
@@ -165,7 +165,7 @@ public class HomeService {
 
 				kma.getUltraNcst(localDate, clock, xy)
 						.exceptionally(e -> {
-							log.debug("kma.getUltraNcst 에서 오류 발생");
+							log.debug("kma.getUltraNcst 에서 오류 발생: {}", e.getMessage());
 							throw new CustomException(ResponseCode.COM5000);
 						})
 						.thenApply(ultraNcstList -> {
@@ -208,7 +208,7 @@ public class HomeService {
 							return tmp;
 						})
 						.exceptionally(e -> {
-							log.debug("Ncst 파싱 과정에서 오류 발생");
+							log.debug("Ncst 파싱 과정에서 오류 발생: {}", e.getMessage());
 							throw new CustomException(ResponseCode.COM5000);
 						})
 						.thenAcceptBoth(lastTempFuture, (tmp, lastTemp) -> {
@@ -230,8 +230,6 @@ public class HomeService {
 		// OOTD - 응답[4]
 		res.setOotd(getOotdPreview(ai.getSimilarUser(member.getId())));
 
-		settingForecast.join();
-
 		// DB 접근을 위한 동기 작업
 
 		double tempAvg = (double) forecastMapFuture.join().get("tempAvg");
@@ -247,6 +245,8 @@ public class HomeService {
 		// 코디 추천 - 응답[3]
 		res.setRecommend(getRecommend(ai.getRecommend(tempAvg, member.getId())));
 		log.debug("recommend[0][0]: {}", res.getRecommend().get(0).get(0).getFullTag());
+
+		settingForecast.join();
 
 		return res;
 	}

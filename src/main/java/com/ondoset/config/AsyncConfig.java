@@ -16,7 +16,7 @@ public class AsyncConfig implements AsyncConfigurer {
 	public Executor threadPoolTaskExecutor() {
 
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(3); // 기본 스레드 수
+		executor.setCorePoolSize(10); // 기본 스레드 수
 		executor.setMaxPoolSize(30); // 최대 스레드 수
 		return executor;
 	}
