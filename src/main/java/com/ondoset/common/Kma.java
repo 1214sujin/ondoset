@@ -69,8 +69,7 @@ public class Kma {
 						return Mono.error(new RuntimeException("JsonProcessingException: item 객체 추출 실패"));
 					}
 				})
-				.retryWhen(Retry.max(5)
-						.filter(e -> e.getMessage().equals("type error"))
+				.retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100))
 						.doBeforeRetry(retrySignal -> log.info("Retrying...")))
 				.doOnError(e -> {
 					log.error("오류가 발생한 요청 API: https://apis.data.go.kr/1360000{}", resUri);
@@ -105,6 +104,8 @@ public class Kma {
 
 					return result;
 				})
+				.retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100))
+						.doBeforeRetry(retrySignal -> log.info("Retrying...")))
 				.doOnError(e -> log.error("오류가 발생한 요청 API: https://apihub.kma.go.kr/api/typ01{}", reqUri))
 				.toFuture();
 	}
@@ -149,6 +150,8 @@ public class Kma {
 
 					return stn;
 				})
+				.retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100))
+						.doBeforeRetry(retrySignal -> log.info("Retrying...")))
 				.doOnError(e -> log.error("오류가 발생한 요청 API: https://apihub.kma.go.kr/api/typ01{}", reqUri))
 				.toFuture();
 	}
