@@ -50,12 +50,16 @@ public class LoggingFilter extends OncePerRequestFilter {
 		// 입력값 로깅
 		StringBuilder requestLog = new StringBuilder();
 
-		requestLog.append("\n\nrequest = ").append(request.getMethod()).append(" ").append(requestWrapper.getRequestURI()).append("\n");
+		requestLog.append("\n\nrequest from ").append(request.getHeader("User-Agent"));
+
+		requestLog.append("\n\nrequest = ").append(request.getMethod()).append(" ").append(requestWrapper.getRequestURI());
 		if (!requestWrapper.getParameterMap().isEmpty()) {
+			requestLog.append("\n");
 			requestWrapper.getParameterMap().forEach((key, value) -> requestLog.append("\n").append(key).append(" = ").append(Arrays.asList(value).get(0)));
 		}
 		String requestContent = new String(requestWrapper.getContentAsByteArray());
 		if (requestContent.length() != 0) {
+			requestLog.append("\n");
 			JsonObject jsonObject = JsonParser.parseString(requestContent).getAsJsonObject();
 			jsonObject.entrySet().forEach(e ->
 					requestLog.append("\n").append(e.getKey()).append(" = ").append(e.getValue())
