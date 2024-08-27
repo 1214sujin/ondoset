@@ -20,7 +20,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +32,6 @@ public class Ai {
 
 	private final MemberRepository memberRepository;
 	private final LogRepository logRepository;
-	private final Kma kma;
 	@Value("${com.ondoset.ai.path}")
 	private String aiPath;
 	@Value("${com.ondoset.pred.path}")
@@ -84,7 +82,7 @@ public class Ai {
 		}
 	}
 
-	public String reqIdOf(Long memberId) {
+	private String reqIdOf(Long memberId) {
 
 		// 뉴비인지 확인
 		String isNewbie = pythonProcessExecutor(false, pythonPath, String.format("%s/%s", aiPath, "is_new.py"), memberId.toString());
@@ -97,7 +95,7 @@ public class Ai {
 	}
 
 	// AI 추천 코디
-	public List<List<List<Long>>> getRecommend(Double tempAvg, String reqId) {
+	public List<List<List<Long>>> getRecommend(Double tempAvg, Long memberId) {
 
 		String tempRange;
 		if (tempAvg > 28.2) tempRange = "10";
@@ -112,7 +110,7 @@ public class Ai {
 		else tempRange = "1";
 
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, reqId, tempRange)));
+			BufferedReader br = new BufferedReader(new FileReader(String.format("%s/user_%s/predictions_%s.0.txt", predPath, reqIdOf(memberId), tempRange)));
 			List<String> fileContent = new ArrayList<>();
 			String line;
 
@@ -140,8 +138,8 @@ public class Ai {
 	// 만족도 예측
 	public Satisfaction getSatisfaction(Member member, List<FullTagDTO> fullTagList) {
 
-		// 로그를 조회하여 tempAvg를 획득
-		Double tempAvg = logRepository.findTempAvgByUser(member.getName());
+		// 사용자가 최근에 받은 tempAvg를 획득
+		Double tempAvg = member.getRecentReqTemp();
 
 		List<Long> tagList = new ArrayList<>();
 		List<String> thicknessList = new ArrayList<>();
@@ -162,6 +160,10 @@ public class Ai {
 	// 유사 사용자
 	public List<Long> getSimilarUser(Long memberId) {
 
+		if (reqIdOf(memberId).equals("0")) {
+			return new ArrayList<>();
+		}
+
 		String result = pythonProcessExecutor(true, pythonPath, String.format("%s/%s", aiPath, "similar_user.py"), memberId.toString());
 
 		Type type = new TypeToken<List<Long>>(){}.getType();
@@ -173,16 +175,10 @@ public class Ai {
 	}
 
 	// 날씨 비슷한 과거
-	public List<Long> getSimilarDate(Member member, Double lat, Double lon, Long date) {
+	public List<Long> getSimilarDate(Member member, Map<String, String> xy, Long nowTimestamp, Integer daysFromToday) {
 
-		Map<String, String> xy = kma.getXY(lat, lon);
-		String x = xy.get("x");
-		String y = xy.get("y");
-
-		long now = (Instant.now().getEpochSecond()+32400)/86400;
-		int timeFromToday = (int) ((date + 32400) / 86400 - now);
-
-		String result = pythonProcessExecutor(true, pythonPath, String.format("%s/%s", aiPath, "climate.py"), member.getId().toString(), x, y, date.toString(), Integer.toString(timeFromToday));
+		String result = pythonProcessExecutor(true, pythonPath, String.format("%s/%s", aiPath, "climate.py"),
+				member.getId().toString(), xy.get("x"), xy.get("y"), nowTimestamp.toString(), daysFromToday.toString());
 
 		Type type = new TypeToken<List<Long>>(){}.getType();
 

@@ -7,13 +7,12 @@ import com.ondoset.domain.Enum.Category;
 import com.ondoset.domain.Enum.Thickness;
 import com.ondoset.dto.clothes.*;
 import com.ondoset.service.ClothesService;
+import com.ondoset.service.HomeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -21,12 +20,13 @@ import java.util.List;
 @RequestMapping("/clothes")
 public class ClothesController {
 
+	private final HomeService homeService;
 	private final ClothesService clothesService;
 
 	@GetMapping("/home")
 	public ResponseEntity<ResponseMessage<HomeDTO.res>> getHome(@Valid HomeDTO.req req) {
 
-		HomeDTO.res res = clothesService.getHome(req);
+		HomeDTO.res res = homeService.getHome(req);
 
 		return ResponseEntity.ok(new ResponseMessage<>(ResponseCode.COM2000, res));
 	}

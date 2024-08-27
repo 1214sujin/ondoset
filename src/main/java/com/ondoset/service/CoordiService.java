@@ -11,7 +11,7 @@ import com.ondoset.domain.Enum.Satisfaction;
 import com.ondoset.domain.Member;
 import com.ondoset.dto.clothes.ClothesDTO;
 import com.ondoset.dto.coordi.*;
-import com.ondoset.dto.kma.PastWDTO;
+import com.ondoset.dto.ootd.WeatherPreviewDTO;
 import com.ondoset.repository.ClothesRepository;
 import com.ondoset.repository.ConsistingRepository;
 import com.ondoset.repository.CoordiRepository;
@@ -27,9 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -65,17 +63,24 @@ public class CoordiService {
 
 	public DateDTO postRoot(PostRootDTO req) {
 
-		Long departTime = req.getDepartTime();
-		long date = ((departTime+32400)/86400)*86400-32400;
+		long departTimestamp = req.getDepartTime();
+		LocalDateTime departTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(departTimestamp), ZoneId.of("Asia/Seoul"));
+		long arrivalTimestamp = req.getArrivalTime();
+		LocalDateTime arrivalTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(arrivalTimestamp), ZoneId.of("Asia/Seoul"));
+		long dateTimestamp = departTime.toLocalDate().atStartOfDay().toEpochSecond(ZoneOffset.of("+9"));
 
 		// 이미 사용자가 해당 날짜에 코디 데이터를 가지고 있다면 오류 반환
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
-		if (coordiRepository.existsByConsistings_Clothes_MemberAndDate(member, date)) {
+		if (coordiRepository.existsByConsistings_Clothes_MemberAndDate(member, dateTimestamp)) {
 			throw new CustomException(ResponseCode.COM4090);
 		}
 
-		Long arrivalTime = req.getArrivalTime();
-		if (arrivalTime < departTime) {
+		// 날씨를 조회하려면 등록하려는 날짜가 오늘 날짜와 24시간 이상 차이나야 함
+		LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+		if (!kma.canGetWthrData(now.toLocalDate().atStartOfDay(), arrivalTime))
+			throw new CustomException(ResponseCode.COM4000, "아직 등록할 수 없는 날짜입니다.");
+
+		if (arrivalTime.isBefore(departTime)) {
 			throw new CustomException(ResponseCode.COM4000, "등록하려는 날짜가 잘못되었습니다.");
 		}
 
@@ -87,37 +92,32 @@ public class CoordiService {
 
 		// coordi 정의
 		Coordi coordi = new Coordi();
-		coordi.setDate(date);
+		coordi.setDate(dateTimestamp);
 		coordi.setRegion(region);
-		coordi.setDepartTime(departTime);
-		coordi.setArrivalTime(arrivalTime);
+		coordi.setDepartTime(departTimestamp);
+		coordi.setArrivalTime(arrivalTimestamp);
 
 		DateDTO res = new DateDTO();
-		res.setDate(date);
+		res.setDate(dateTimestamp);
 
-		// 날씨를 조회하려면 등록하려는 날짜가 오늘 날짜와 24시간 이상 차이나야 함
-		// 조건에 부합하지 않는다면 계획까지만 생성
-		long now = Instant.now().getEpochSecond();
-		if ((now - ((arrivalTime+32400)/86400)*86400-32400) >= 86400) {
-			PastWDTO pastW = kma.getPastW(lat, lon, departTime, arrivalTime);
-			coordi.setWeather(pastW.getWeather());
-			coordi.setLowestTemp(pastW.getLowestTemp());
-			coordi.setHighestTemp(pastW.getHighestTemp());
-		}
+		WeatherPreviewDTO.res weatherPreview = kma.getStn(lat, lon, now)
+				.thenCompose(stn -> kma.getWthrData(departTime, arrivalTime, stn))
+				.thenApply(kma::getWeatherPreviewFrom).join();
+		coordi.setWeather(weatherPreview.getWeather());
+		coordi.setLowestTemp(weatherPreview.getLowestTemp());
+		coordi.setHighestTemp(weatherPreview.getHighestTemp());
 
 		coordiRepository.save(coordi);
 
 		// consisting 정의
 		List<Clothes> clothesList = clothesRepository.findByIdIn(clothesIdList);
 
-		ArrayList<Consisting> consistingList = new ArrayList<>();
-		for (Clothes ct : clothesList) {
-
+		List<Consisting> consistingList = clothesList.stream().map(ct -> {
 			Consisting consisting = new Consisting();
 			consisting.setConsistings(coordi, ct);
+			return consisting;
+		}).toList();
 
-			consistingList.add(consisting);
-		}
 		consistingRepository.saveAll(consistingList);
 
 		return res;
@@ -388,6 +388,12 @@ public class CoordiService {
 		// 현재 사용자 조회
 		Member member = memberRepository.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
 
+		// req 분해
+		long departTimestamp = req.getDepartTime();
+		LocalDateTime departTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(departTimestamp), ZoneId.of("Asia/Seoul"));
+		long arrivalTimestamp = req.getArrivalTime();
+		LocalDateTime arrivalTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(arrivalTimestamp), ZoneId.of("Asia/Seoul"));
+
 		if (!coordiRepository.existsByIdAndConsistings_Clothes_Member(coordiId, member)) {
 			throw new CustomException(ResponseCode.COM4010, "요청된 자원에 접근할 수 없는 계정입니다: " + member.getName());
 		}
@@ -396,16 +402,15 @@ public class CoordiService {
 		Coordi coordi = coordiRepository.findById(coordiId).get();
 
 		// 날씨를 조회하려면 등록하려는 시간이 오늘 11시가 지난 시점에서 과거 날짜여야 함
-		Long arrivalTime = req.getArrivalTime();
-		Instant now = Instant.now();
-		long timeFromToday = ((now.getEpochSecond()+32400)/86400)*86400 - ((arrivalTime+32400)/86400)*86400;
-		if (timeFromToday < 0 || timeFromToday == 0 && LocalDateTime.ofInstant(now, ZoneId.of("Asia/Seoul")).getHour() < 11) {
+		LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+		long daysFromToday = now.toLocalDate().toEpochDay() - arrivalTime.toLocalDate().toEpochDay();
+		if (daysFromToday < 0 || daysFromToday == 0 && now.getHour() < 11) {
 			throw new CustomException(ResponseCode.COM4000, "아직 등록할 수 없는 날짜입니다.");
 		}
+
 		// departTime을 기준으로 한 날짜가 해당 coordi가 등록된 날짜와 다른 경우 오류 반환
-		Long departTime = req.getDepartTime();
-		long date = ((departTime+32400)/86400)*86400-32400;
-		if (date != coordi.getDate() || arrivalTime < departTime) {
+		LocalDate coordiDate = LocalDate.ofInstant(Instant.ofEpochSecond(coordi.getDate()), ZoneId.of("Asia/Seoul"));
+		if (!departTime.toLocalDate().isEqual(coordiDate) || arrivalTime.isBefore(departTime)) {
 			throw new CustomException(ResponseCode.COM4000, "등록하려는 날짜가 잘못되었습니다.");
 		}
 
@@ -415,12 +420,14 @@ public class CoordiService {
 		String region = req.getRegion();
 
 		// 날씨 계산
-		PastWDTO pastW = kma.getPastW(lat, lon, departTime, arrivalTime);
+		WeatherPreviewDTO.res pastW = kma.getStn(lat, lon, now)
+				.thenCompose(stn -> kma.getWthrData(departTime, arrivalTime, stn))
+				.thenApply(kma::getWeatherPreviewFrom).join();
 
 		// coordi 수정
 		coordi.setRegion(region);
-		coordi.setDepartTime(departTime);
-		coordi.setArrivalTime(arrivalTime);
+		coordi.setDepartTime(departTimestamp);
+		coordi.setArrivalTime(arrivalTimestamp);
 		coordi.setWeather(pastW.getWeather());
 		coordi.setLowestTemp(pastW.getLowestTemp());
 		coordi.setHighestTemp(pastW.getHighestTemp());
@@ -429,7 +436,9 @@ public class CoordiService {
 
 		DateDTO res = new DateDTO();
 
+		Long date = departTime.toLocalDate().atStartOfDay().toEpochSecond(ZoneOffset.of("+9"));
 		res.setDate(date);
+
 		return res;
 	}
 
