@@ -240,11 +240,9 @@ public class HomeService {
 
 		// 코디 기록 - 응답[2]
 		res.setRecord(getRecord(member, dateList, tempAvg));
-		log.debug("record[0][0]: {}", res.getRecord().get(0).getClothesList().get(0));
 
 		// 코디 추천 - 응답[3]
 		res.setRecommend(getRecommend(ai.getRecommend(tempAvg, member.getId())));
-		log.debug("recommend[0][0]: {}", res.getRecommend().get(0).get(0).getFullTag());
 
 		settingForecast.join();
 
@@ -302,7 +300,6 @@ public class HomeService {
 				Coordi coordi = coordiOptional.get();
 				try{
 					log.debug("coordi: {}", coordi);
-					log.debug("coordi[0]: {}", coordi.getConsistings().get(0).getClothes().getName());
 				} catch (Exception e) {
 					log.debug(e.getMessage());
 				}
