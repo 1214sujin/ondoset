@@ -12,5 +12,5 @@ import java.time.LocalDateTime;
 public class GetAdaptModelDTO {
     private LocalDateTime releasedDate;
     private Double version;
-    private LocalDateTime dataCount;
+    private Long dataCount;
 }
