@@ -4,7 +4,7 @@
 ---
 
 ### 커밋 컨벤션
-<gitmoji> <prefix>: <description>
+`<gitmoji> <prefix>: <description>`
 
   | Prefix    | Emoji                  | Description                                        |
   |-----------|------------------------|----------------------------------------------------|
