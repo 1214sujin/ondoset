@@ -1,5 +1,5 @@
 # Ondoset_Server
-팀 Easy Ondoset 프로젝트 서버 리포지토리입니다.
+팀 Easy Ondoset 프로젝트 서버 리포지토리입니다. ([원본](https://github.com/Team-Easy/Ondoset_Server))
 
 ---
 
