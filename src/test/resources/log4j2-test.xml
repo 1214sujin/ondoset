@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+
+    <!-- Appender 설정 -->
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %5p %l - %m%n"/>
+        </Console>
+    </Appenders>
+
+    <!-- Logger 설정 -->
+    <Loggers>
+        <Root level="error">
+            <AppenderRef ref="console"/>
+        </Root>
+
+        <logger name="com.ondoset" level="info" additivity="false" >
+            <AppenderRef ref="console" />
+        </logger>
+        <logger name="com.ondoset.OndosetApplication" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+    </Loggers>
+
+</Configuration>
