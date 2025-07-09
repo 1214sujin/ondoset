@@ -67,8 +67,10 @@ public class HomeService {
 		// 위경도_xy 전환 (kma)
 		CompletableFuture<Map<String, String>> xyFuture = kma.getXY(lat, lon)
 				.exceptionally(e -> {
-					log.debug("kma.getXY 에서 오류 발생: {}", e.getMessage());
-					throw new CustomException(ResponseCode.COM5000);
+					Throwable cause = e.getCause();
+					log.error("kma.getXY 에서 오류 발생:", cause);
+					if (cause instanceof CustomException) throw (CustomException) cause;
+					else throw new CustomException(ResponseCode.COM5000);
 				});
 
 		// 위경도_xy 전환 (kma) -> 단기예보 조회 (kma) -> 단기예보 파싱(parseForecast)
@@ -109,8 +111,10 @@ public class HomeService {
 					return kma.getVilageFcst(numOfRows, baseLocalDate, clock*3-1, xy);
 				}, threadPoolTaskExecutor)
 				.exceptionally(e -> {
-					log.debug("kma.getVilageFcst 에서 오류 발생: {}", e.getMessage());
-					throw new CustomException(ResponseCode.COM5000);
+					Throwable cause = e.getCause();
+					log.error("kma.getVilageFcst 에서 오류 발생:", cause);
+					if (cause instanceof CustomException) throw (CustomException) cause;
+					else throw new CustomException(ResponseCode.COM5000);
 				})
 				.thenApply(vilageFcstList -> {
 
@@ -125,8 +129,10 @@ public class HomeService {
 						return kma.parseLaterForecast(vilageFcstList, localDate);
 				})
 				.exceptionally(e -> {
-					log.debug("kma.parse_Forecast 에서 오류 발생: {}", e.getMessage());
-					throw new CustomException(ResponseCode.COM5000);
+					Throwable cause = e.getCause();
+					log.error("kma.parse_Forecast 에서 오류 발생:", cause);
+					if (cause instanceof CustomException) throw (CustomException) cause;
+					else throw new CustomException(ResponseCode.COM5000);
 				});
 
 		// 위경도_xy 전환 (kma) -> 오늘과 날씨가 유사한 날짜 (ai)
@@ -136,8 +142,10 @@ public class HomeService {
 					return ai.getSimilarDate(member, xy, nowTimestamp, daysFromToday);
 				}, threadPoolTaskExecutor)
 				.exceptionally(e -> {
-					log.debug("ai.getSimilarDate 에서 오류 발생: {}", e.getMessage());
-					throw new CustomException(ResponseCode.COM5000);
+					Throwable cause = e.getCause();
+					log.error("ai.getSimilarDate 에서 오류 발생:", cause);
+					if (cause instanceof CustomException) throw (CustomException) cause;
+					else throw new CustomException(ResponseCode.COM5000);
 				});
 
 		CompletableFuture<Void> settingForecast = forecastMapFuture.thenAcceptBothAsync(xyFuture, (forecastMap, xy) -> {
@@ -165,8 +173,10 @@ public class HomeService {
 
 				kma.getUltraNcst(localDate, clock, xy)
 						.exceptionally(e -> {
-							log.debug("kma.getUltraNcst 에서 오류 발생: {}", e.getMessage());
-							throw new CustomException(ResponseCode.COM5000);
+							Throwable cause = e.getCause();
+							log.error("kma.getUltraNcst 에서 오류 발생:", cause);
+							if (cause instanceof CustomException) throw (CustomException) cause;
+							else throw new CustomException(ResponseCode.COM5000);
 						})
 						.thenApply(ultraNcstList -> {
 							Double tmp = null; Integer pty = null; Double wsd = null; Integer reh = null;
@@ -181,7 +191,7 @@ public class HomeService {
 								}
 							}
 							if (tmp == null || pty == null || wsd == null || reh == null)
-								throw new CustomException(ResponseCode.COM5000, "현재 날씨 정보에 빈 정보가 포함되어 있습니다.");
+								throw new CustomException(ResponseCode.KMA5000, "현재 날씨 정보에 빈 정보가 포함되어 있습니다.");
 
 							// 현재 기온, 전날 대비, 체감 온도
 							forecast.setNow(tmp);
@@ -200,7 +210,7 @@ public class HomeService {
 									case 1 -> Weather.SUNNY;
 									case 3 -> Weather.PARTLY_CLOUDY;
 									case 4 -> Weather.CLOUDY;
-									default -> throw new CustomException(ResponseCode.COM5000);
+									default -> throw new CustomException(ResponseCode.KMA5000, "기상청 API가 변경되었습니다. 관리자에게 문의해주세요.");
 								};
 							};
 							forecast.setWeather(weather);
@@ -208,8 +218,10 @@ public class HomeService {
 							return tmp;
 						})
 						.exceptionally(e -> {
-							log.debug("Ncst 파싱 과정에서 오류 발생: {}", e.getMessage());
-							throw new CustomException(ResponseCode.COM5000);
+							Throwable cause = e.getCause();
+							log.error("Ncst 파싱 과정에서 오류 발생:", cause);
+							if (cause instanceof CustomException) throw (CustomException) cause;
+							else throw new CustomException(ResponseCode.COM5000);
 						})
 						.thenAcceptBoth(lastTempFuture, (tmp, lastTemp) -> {
 

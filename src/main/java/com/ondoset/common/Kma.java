@@ -19,9 +19,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -60,7 +58,6 @@ public class Kma {
 				.bodyToMono(new ParameterizedTypeReference<KmaData<T>>() {})
 				.flatMap(kmaData -> {
 
-					// "response": {"body": {"items": {"item": [] } } } 구조에서 item만 추출하여 반환
 					try {
 						List<T> item = kmaData.getResponse().getBody().getItems().getItem();
 						item = objectMapper.readValue(objectMapper.writeValueAsString(item), typeReference);
@@ -68,12 +65,6 @@ public class Kma {
 					} catch (JsonProcessingException e) {
 						return Mono.error(new RuntimeException("JsonProcessingException: item 객체 추출 실패"));
 					}
-				})
-				.retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100))
-						.doBeforeRetry(retrySignal -> log.info("Retrying...")))
-				.doOnError(e -> {
-					log.error("오류가 발생한 요청 API: https://apis.data.go.kr/1360000{}", resUri);
-					throw (CustomException) e;
 				});
 	}
 
@@ -104,9 +95,6 @@ public class Kma {
 
 					return result;
 				})
-				.retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100))
-						.doBeforeRetry(retrySignal -> log.info("Retrying...")))
-				.doOnError(e -> log.error("오류가 발생한 요청 API: https://apihub.kma.go.kr/api/typ01{}", reqUri))
 				.toFuture();
 	}
 
@@ -150,9 +138,6 @@ public class Kma {
 
 					return stn;
 				})
-				.retryWhen(Retry.fixedDelay(3, Duration.ofMillis(100))
-						.doBeforeRetry(retrySignal -> log.info("Retrying...")))
-				.doOnError(e -> log.error("오류가 발생한 요청 API: https://apihub.kma.go.kr/api/typ01{}", reqUri))
 				.toFuture();
 	}
 
